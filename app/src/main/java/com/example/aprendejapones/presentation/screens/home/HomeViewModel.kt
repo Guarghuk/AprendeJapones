@@ -2,22 +2,14 @@ package com.example.aprendejapones.presentation.screens.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.aprendejapones.domain.model.*
+import com.example.aprendejapones.utils.MockData
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 
 /**
  * ViewModel para la pantalla Home
- * Maneja la lógica de presentación y el estado de la UI
- *
- * En una implementación completa, inyectarías UseCases aquí:
- * @HiltViewModel
- * class HomeViewModel @Inject constructor(
- *     private val getUserUseCase: GetUserUseCase,
- *     private val getDailyChallengeUseCase: GetDailyChallengeUseCase,
- *     private val getLessonFunctionsUseCase: GetLessonFunctionsUseCase
- * ) : ViewModel()
+ * Usa datos mock para el desarrollo de UI
  */
 class HomeViewModel : ViewModel() {
 
@@ -48,21 +40,20 @@ class HomeViewModel : ViewModel() {
     }
 
     /**
-     * Carga los datos iniciales
-     * En producción, esto llamaría a UseCases
+     * Carga los datos iniciales (simulado)
      */
     private fun loadInitialData() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
 
             try {
-                // Simular carga de datos (reemplazar con UseCases reales)
+                // Simular carga de red
                 delay(500)
 
-                val user = getMockUser()
-                val challenge = getMockDailyChallenge()
-                val message = getMockKitsuneMessage()
-                val functions = getMockLessonFunctions()
+                val user = MockData.getMockUser()
+                val challenge = MockData.getMockDailyChallenge()
+                val message = MockData.getMockKitsuneMessage()
+                val functions = MockData.getMockLessonFunctions()
 
                 _state.update {
                     it.copy(
@@ -90,8 +81,8 @@ class HomeViewModel : ViewModel() {
     private fun refreshData() {
         viewModelScope.launch {
             try {
-                val user = getMockUser()
-                val challenge = getMockDailyChallenge()
+                val user = MockData.getMockUser()
+                val challenge = MockData.getMockDailyChallenge()
 
                 _state.update {
                     it.copy(
@@ -147,41 +138,4 @@ class HomeViewModel : ViewModel() {
     private fun dismissError() {
         _state.update { it.copy(error = null) }
     }
-
-    // ========== MOCK DATA (Reemplazar con Repository/UseCases reales) ==========
-
-    private fun getMockUser() = User(
-        id = "user_123",
-        username = "Usuario123",
-        rank = "初心者",
-        level = 8,
-        currentXP = 1450,
-        maxXP = 2000,
-        streak = 7,
-        drops = 150,
-        memberSince = "Enero 2025"
-    )
-
-    private fun getMockDailyChallenge() = DailyChallenge(
-        id = "challenge_today",
-        completed = 3,
-        total = 5,
-        timeRemaining = "23:45:12",
-        rewardXP = 50
-    )
-
-    private fun getMockKitsuneMessage() = KitsuneMessage(
-        message = "¡Buenos días! Hoy es perfecto para practicar."
-    )
-
-    private fun getMockLessonFunctions() = listOf(
-        LessonFunction("1", "💬", "Haz Frases", "Nuevas palabras"),
-        LessonFunction("2", "📚", "Vocabulario", "Palabras esenciales"),
-        LessonFunction("3", "あ", "Hiragana", "Sistema silábico"),
-        LessonFunction("4", "ア", "Katakana", "Palabras extranjeras"),
-        LessonFunction("5", "漢", "Kanji", "Caracteres japoneses"),
-        LessonFunction("6", "🗣️", "Conversación", "Habla con IA"),
-        LessonFunction("7", "🎤", "Pronunciación", "Escucha y repite"),
-        LessonFunction("8", "📖", "Gramática", "Estructuras y partículas")
-    )
 }

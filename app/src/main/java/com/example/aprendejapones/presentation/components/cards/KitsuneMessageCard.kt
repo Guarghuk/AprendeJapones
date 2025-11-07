@@ -2,13 +2,7 @@ package com.example.aprendejapones.presentation.components.cards
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,39 +12,57 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.aprendejapones.presentation.theme.*
 
+/**
+ * Card que muestra un mensaje del mascota Kitsune
+ */
 @Composable
-fun KitsuneMessageCard() {
+fun KitsuneMessageCard(
+    message: String,
+    modifier: Modifier = Modifier
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
-            .border(2.dp, Color(0xFFFFB74D).copy(alpha = 0.3f), RoundedCornerShape(10.dp))
-            .background(Color(0xFFFFF8E1), RoundedCornerShape(10.dp))
+            .border(
+                width = 2.dp,
+                color = AccentOrange.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(10.dp)
+            )
+            .background(
+                color = AccentOrangeLight,
+                shape = RoundedCornerShape(10.dp)
+            )
             .padding(14.dp)
     ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            // Avatar de Kitsune
             Box(
                 modifier = Modifier
                     .size(40.dp)
-                    .border(2.dp, Color(0xFFFF9800), RoundedCornerShape(20.dp))
+                    .border(2.dp, AccentOrange, RoundedCornerShape(20.dp))
                     .background(Color.White, RoundedCornerShape(20.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Text("🦊", fontSize = 22.sp)
             }
 
+            // Mensaje
             Column {
                 Text(
-                    "Kitsune-sensei",
+                    text = "Kitsune-sensei",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color(0xFFFF6F00)
+                    color = AccentOrangeDark
                 )
                 Text(
-                    "¡Buenos días! Hoy es perfecto para practicar.",
+                    text = message,
                     fontSize = 12.sp,
-                    color = Color(0xFF666666),
+                    color = TextSecondary,
                     lineHeight = 16.sp,
                     modifier = Modifier.padding(top = 2.dp)
                 )
