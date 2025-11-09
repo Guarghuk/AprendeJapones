@@ -1,8 +1,10 @@
-package com.example.aprendejapones.presentation.screens.profile
+package com.example.aprendejapones.presentation.screens.community
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,17 +14,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.aprendejapones.presentation.components.cards.*
+import com.example.aprendejapones.presentation.components.cards.PostCard
 import com.example.aprendejapones.presentation.theme.*
 
 /**
- * Pantalla de Perfil
+ * Pantalla de Comunidad
  */
 @Composable
-fun ProfileScreen(
-    onNavigateToAchievements: () -> Unit = {},
-    onNavigateToStats: () -> Unit = {},
-    viewModel: ProfileViewModel = viewModel()
+fun CommunityScreen(
+    onNavigateToNewPost: () -> Unit = {},
+    viewModel: CommunityViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -30,9 +31,11 @@ fun ProfileScreen(
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
-                is ProfileEffect.NavigateToAchievements -> onNavigateToAchievements()
-                is ProfileEffect.NavigateToStats -> onNavigateToStats()
-                is ProfileEffect.ShowToast -> {
+                is CommunityEffect.NavigateToNewPost -> onNavigateToNewPost()
+                is CommunityEffect.NavigateToPostDetail -> {
+                    // TODO: Navegar al detalle
+                }
+                is CommunityEffect.ShowToast -> {
                     // TODO: Mostrar toast
                 }
             }
@@ -42,27 +45,27 @@ fun ProfileScreen(
     // Mostrar error
     state.error?.let { error ->
         AlertDialog(
-            onDismissRequest = { viewModel.onEvent(ProfileEvent.DismissError) },
+            onDismissRequest = { viewModel.onEvent(CommunityEvent.DismissError) },
             title = { Text("Error") },
             text = { Text(error) },
             confirmButton = {
-                TextButton(onClick = { viewModel.onEvent(ProfileEvent.DismissError) }) {
+                TextButton(onClick = { viewModel.onEvent(CommunityEvent.DismissError) }) {
                     Text("OK")
                 }
             }
         )
     }
 
-    ProfileContent(
+    CommunityContent(
         state = state,
         onEvent = viewModel::onEvent
     )
 }
 
 @Composable
-private fun ProfileContent(
-    state: ProfileState,
-    onEvent: (ProfileEvent) -> Unit
+private fun CommunityContent(
+    state: CommunityState,
+    onEvent: (CommunityEvent) -> Unit
 ) {
     if (state.isLoading) {
         Box(
@@ -91,13 +94,13 @@ private fun ProfileContent(
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text = "👤 Tu Perfil",
+                    text = "💬 Comunidad",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
                 Text(
-                    text = "Logros y Progreso",
+                    text = "Comparte y aprende juntos",
                     fontSize = 11.sp,
                     color = TextSecondary,
                     modifier = Modifier.padding(top = 4.dp)
@@ -108,37 +111,34 @@ private fun ProfileContent(
         // Content
         Column(
             modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            UserInfoCard(
-                username = state.username,
-                rank = state.rank,
-                memberSince = state.memberSince,
-                level = state.level,
-                currentXP = state.currentXP,
-                maxXP = state.maxXP,
-                xpProgress = state.xpProgress
-            )
+            // Botón nueva publicación
+            Button(
+                onClick = { onEvent(CommunityEvent.CreateNewPost) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(2.dp, PrimaryGreen, RoundedCornerShape(8.dp)),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(14.dp)
+            ) {
+                Text(
+                    text = "+ Nueva Publicación",
+                    color = SurfaceWhite,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+            }
 
-            /*
-            FALTAN LAS SIGUIENTES TARJETAS:
-            StatsCard(
-                streak = state.stats.streak,
-                lessonsCompleted = state.stats.lessonsCompleted,
-                totalTime = state.stats.totalTimeHours,
-                onClickStats = { onEvent(ProfileEvent.NavigateToStats) }
-            )
-
-            AchievementsPreviewCard(
-                achievements = state.achievements,
-                unlockedCount = state.unlockedAchievementsCount,
-                totalCount = state.totalAchievements,
-                onClickAchievements = { onEvent(ProfileEvent.NavigateToAchievements) }
-            )
-
-            RecentActivityCard(
-                activities = state.recentActivity
-            )*/
+            // Posts
+            state.posts.forEach { post ->
+                PostCard(
+                    post = post,
+                    onLike = { postId -> onEvent(CommunityEvent.LikePost(postId)) },
+                    onSave = { postId -> onEvent(CommunityEvent.SavePost(postId)) }
+                )
+            }
         }
     }
 }
