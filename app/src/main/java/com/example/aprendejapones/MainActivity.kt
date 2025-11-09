@@ -7,12 +7,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.example.aprendejapones.presentation.screens.home.HomeScreen
+import com.example.aprendejapones.presentation.navigation.KotodamaNavGraph
 import com.example.aprendejapones.presentation.theme.KotodamaTheme
 
 /**
- * MainActivity refactorizada
- * Ahora usa el tema y estructura limpia
+ * MainActivity - Punto de entrada de la aplicación
+ * Configura el tema y el sistema de navegación
  */
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,13 +23,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    // Por ahora solo HomeScreen, luego agregaremos Navigation
-                    HomeScreen(
-                        onNavigateToLesson = { functionName ->
-                            // TODO: Navegar a LessonScreen cuando esté migrado
-                            println("Navegando a: $functionName")
-                        }
-                    )
+                    // Sistema de navegación completo
+                    KotodamaNavGraph()
                 }
             }
         }
