@@ -77,6 +77,7 @@ private fun LessonContent(
     }
 
     val currentQuestion = state.questions.getOrNull(state.currentQuestion - 1)
+    val isLastQuestion = state.currentQuestion == state.totalQuestions
 
     Column(
         modifier = Modifier
@@ -108,9 +109,11 @@ private fun LessonContent(
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(bottom = 24.dp),
-                    color = TextPrimary
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center
                 )
 
+                // Card con el contenido de la pregunta
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.8f)
@@ -120,9 +123,14 @@ private fun LessonContent(
                         .padding(30.dp),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(text = question.content, fontSize = 80.sp)
+                    Text(
+                        text = question.content,
+                        fontSize = 80.sp,
+                        textAlign = TextAlign.Center
+                    )
                 }
 
+                // Opciones de respuesta
                 Column(
                     modifier = Modifier.padding(top = 28.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -131,7 +139,43 @@ private fun LessonContent(
                         OptionButton(
                             text = option,
                             isSelected = state.selectedAnswer == option,
-                            onClick = { onEvent(LessonEvent.SelectAnswer(option)) }
+                            isCorrect = state.isAnswered && option == question.correctAnswer,
+                            isWrong = state.isAnswered && state.selectedAnswer == option && option != question.correctAnswer,
+                            enabled = !state.isAnswered,
+                            onClick = {
+                                if (!state.isAnswered) {
+                                    onEvent(LessonEvent.SelectAnswer(option))
+                                }
+                            }
+                        )
+                    }
+                }
+
+                // Mensaje de feedback
+                if (state.isAnswered) {
+                    val isCorrect = state.selectedAnswer == question.correctAnswer
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 20.dp)
+                            .border(
+                                2.dp,
+                                if (isCorrect) PrimaryGreen else ErrorRed,
+                                RoundedCornerShape(8.dp)
+                            )
+                            .background(
+                                if (isCorrect) PrimaryGreenLight else ErrorRed.copy(alpha = 0.1f),
+                                RoundedCornerShape(8.dp)
+                            )
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = if (isCorrect) "¡Correcto! ✓" else "Incorrecto. La respuesta correcta es: ${question.correctAnswer}",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isCorrect) PrimaryGreen else ErrorRed,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -140,15 +184,17 @@ private fun LessonContent(
 
         // Navigation
         LessonNavigation(
-            canGoPrevious = state.currentQuestion > 1,
+            canGoPrevious = state.currentQuestion > 1 && !state.isAnswered,
             canVerify = state.selectedAnswer != null && !state.isAnswered,
-            isLastQuestion = state.currentQuestion == state.totalQuestions,
+            canNext = state.isAnswered,
+            isLastQuestion = isLastQuestion,
             onPrevious = { onEvent(LessonEvent.PreviousQuestion) },
-            onVerify = {
-                if (state.isAnswered) {
-                    onEvent(LessonEvent.NextQuestion)
+            onVerify = { onEvent(LessonEvent.VerifyAnswer) },
+            onNext = {
+                if (isLastQuestion) {
+                    onEvent(LessonEvent.FinishLesson)
                 } else {
-                    onEvent(LessonEvent.VerifyAnswer)
+                    onEvent(LessonEvent.NextQuestion)
                 }
             }
         )
@@ -206,7 +252,7 @@ private fun LessonHeader(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 8.dp)
                 .height(8.dp)
                 .border(2.dp, BorderGray, RoundedCornerShape(4.dp))
                 .background(BackgroundGray, RoundedCornerShape(4.dp))
@@ -225,30 +271,57 @@ private fun LessonHeader(
 private fun OptionButton(
     text: String,
     isSelected: Boolean,
+    isCorrect: Boolean,
+    isWrong: Boolean,
+    enabled: Boolean,
     onClick: () -> Unit
 ) {
+    val backgroundColor = when {
+        isCorrect -> PrimaryGreenLight
+        isWrong -> ErrorRed.copy(alpha = 0.1f)
+        isSelected -> PrimaryGreenLight.copy(alpha = 0.3f)
+        else -> SurfaceWhite
+    }
+
+    val borderColor = when {
+        isCorrect -> PrimaryGreen
+        isWrong -> ErrorRed
+        isSelected -> PrimaryGreen
+        else -> BorderGray
+    }
+
     Button(
         onClick = onClick,
+        enabled = enabled,
         modifier = Modifier
             .fillMaxWidth()
-            .border(
-                2.dp,
-                if (isSelected) PrimaryGreen else BorderGray,
-                RoundedCornerShape(8.dp)
-            ),
+            .border(2.dp, borderColor, RoundedCornerShape(8.dp)),
         colors = ButtonDefaults.buttonColors(
-            containerColor = if (isSelected) PrimaryGreenLight else SurfaceWhite
+            containerColor = backgroundColor,
+            disabledContainerColor = backgroundColor
         ),
         shape = RoundedCornerShape(8.dp),
         contentPadding = PaddingValues(16.dp)
     ) {
-        Text(
-            text = text,
-            color = TextPrimary,
-            fontSize = 14.sp,
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Start
-        )
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = text,
+                color = TextPrimary,
+                fontSize = 14.sp,
+                textAlign = TextAlign.Start,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (isCorrect) {
+                Text("✓", fontSize = 20.sp, color = PrimaryGreen)
+            } else if (isWrong) {
+                Text("✗", fontSize = 20.sp, color = ErrorRed)
+            }
+        }
     }
 }
 
@@ -256,9 +329,11 @@ private fun OptionButton(
 private fun LessonNavigation(
     canGoPrevious: Boolean,
     canVerify: Boolean,
+    canNext: Boolean,
     isLastQuestion: Boolean,
     onPrevious: () -> Unit,
-    onVerify: () -> Unit
+    onVerify: () -> Unit,
+    onNext: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -267,13 +342,17 @@ private fun LessonNavigation(
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // Botón Anterior
         Button(
             onClick = onPrevious,
             enabled = canGoPrevious,
             modifier = Modifier
                 .weight(1f)
                 .border(2.dp, BorderGray, RoundedCornerShape(8.dp)),
-            colors = ButtonDefaults.buttonColors(containerColor = SurfaceWhite),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = SurfaceWhite,
+                disabledContainerColor = SurfaceWhite.copy(alpha = 0.5f)
+            ),
             shape = RoundedCornerShape(8.dp)
         ) {
             Text(
@@ -284,17 +363,25 @@ private fun LessonNavigation(
             )
         }
 
+        // Botón Verificar o Siguiente
         Button(
-            onClick = onVerify,
-            enabled = canVerify,
+            onClick = if (canNext) onNext else onVerify,
+            enabled = canVerify || canNext,
             modifier = Modifier
                 .weight(1f)
                 .border(2.dp, PrimaryGreen, RoundedCornerShape(8.dp)),
-            colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = PrimaryGreen,
+                disabledContainerColor = PrimaryGreen.copy(alpha = 0.5f)
+            ),
             shape = RoundedCornerShape(8.dp)
         ) {
             Text(
-                text = if (isLastQuestion) "Terminar" else "Verificar →",
+                text = when {
+                    canNext && isLastQuestion -> "Terminar"
+                    canNext -> "Siguiente →"
+                    else -> "Verificar"
+                },
                 color = SurfaceWhite,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold
@@ -384,7 +471,7 @@ fun ResultsScreen(
                 contentPadding = PaddingValues(16.dp)
             ) {
                 Text(
-                    text = "Continuar Aprendiendo",
+                    text = "Repetir Lección",
                     color = SurfaceWhite,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp

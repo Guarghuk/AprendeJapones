@@ -120,25 +120,27 @@ private fun ProfileContent(
                 xpProgress = state.xpProgress
             )
 
-            /*
-            FALTAN LAS SIGUIENTES TARJETAS:
             StatsCard(
                 streak = state.stats.streak,
                 lessonsCompleted = state.stats.lessonsCompleted,
                 totalTime = state.stats.totalTimeHours,
-                onClickStats = { onEvent(ProfileEvent.NavigateToStats) }
+                onClickStats = { onEvent(ProfileEvent.NavigateToStats(
+                    stats = TODO()
+                )) }
             )
 
             AchievementsPreviewCard(
                 achievements = state.achievements,
                 unlockedCount = state.unlockedAchievementsCount,
                 totalCount = state.totalAchievements,
-                onClickAchievements = { onEvent(ProfileEvent.NavigateToAchievements) }
+                onClickAchievements = { onEvent(ProfileEvent.NavigateToAchievements(
+                    achievements = TODO()
+                )) }
             )
 
             RecentActivityCard(
                 activities = state.recentActivity
-            )*/
+            )
         }
     }
 }
