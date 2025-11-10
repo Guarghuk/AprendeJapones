@@ -119,40 +119,38 @@ fun KotodamaNavGraph(
 
                 // Achievements Screen
                 composable(Screen.Achievements.route) {
-                    PlaceholderScreen(
-                        title = "Logros",
+                    com.example.aprendejapones.presentation.screens.achievements.AchievementsScreen(
                         onBack = { navController.popBackStack() }
                     )
                 }
 
                 // New Post Screen
                 composable(Screen.NewPost.route) {
-                    PlaceholderScreen(
-                        title = "Nueva Publicación",
-                        onBack = { navController.popBackStack() }
+                    com.example.aprendejapones.presentation.screens.newpost.NewPostScreen(
+                        onBack = { navController.popBackStack() },
+
                     )
                 }
 
                 // Daily Goal Screen
                 composable(Screen.DailyGoal.route) {
-                    PlaceholderScreen(
-                        title = "Meta Diaria",
+                    com.example.aprendejapones.presentation.screens.dailygoal.DailyGoalScreen(
                         onBack = { navController.popBackStack() }
+                        // Si quieres navegar a otra screen desde aquí, usa una lambda con navController.navigate(route)
                     )
                 }
 
                 // Reminders Screen
                 composable(Screen.Reminders.route) {
-                    PlaceholderScreen(
-                        title = "Recordatorios",
+                    com.example.aprendejapones.presentation.screens.reminders.RemindersScreen(
                         onBack = { navController.popBackStack() }
+                        // Para navegación entre pantallas, pasa una lambda y navega con navController.navigate(route)
                     )
                 }
 
                 // Stats Screen
                 composable(Screen.Stats.route) {
-                    PlaceholderScreen(
-                        title = "Estadísticas",
+                    com.example.aprendejapones.presentation.screens.stats.StatsScreen(
                         onBack = { navController.popBackStack() }
                     )
                 }
