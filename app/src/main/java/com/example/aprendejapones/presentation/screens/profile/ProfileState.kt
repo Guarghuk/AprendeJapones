@@ -58,8 +58,8 @@ data class ProfileStats(
 sealed class ProfileEvent {
     object LoadData : ProfileEvent()
     object RefreshData : ProfileEvent()
-    data class NavigateToAchievements(val achievements: List<Achievement>) : ProfileEvent()
-    data class NavigateToStats(val stats: ProfileStats) : ProfileEvent()
+    object NavigateToAchievements : ProfileEvent()
+    object NavigateToStats : ProfileEvent()
     object DismissError : ProfileEvent()
 }
 
@@ -67,7 +67,7 @@ sealed class ProfileEvent {
  * Efectos secundarios
  */
 sealed class ProfileEffect {
-    data class NavigateToAchievements(val achievements: List<Achievement>) : ProfileEffect()
-    data class NavigateToStats(val stats: ProfileStats) : ProfileEffect()
+    object NavigateToAchievements : ProfileEffect()
+    object NavigateToStats : ProfileEffect()
     data class ShowToast(val message: String) : ProfileEffect()
 }

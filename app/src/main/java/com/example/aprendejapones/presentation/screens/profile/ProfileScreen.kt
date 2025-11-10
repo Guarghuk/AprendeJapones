@@ -124,18 +124,20 @@ private fun ProfileContent(
                 streak = state.stats.streak,
                 lessonsCompleted = state.stats.lessonsCompleted,
                 totalTime = state.stats.totalTimeHours,
-                onClickStats = { onEvent(ProfileEvent.NavigateToStats(
-                    stats = TODO()
-                )) }
+                onClickStats = {
+                    // Enviar evento de navegación a Stats
+                    onEvent(ProfileEvent.NavigateToStats)
+                }
             )
 
             AchievementsPreviewCard(
                 achievements = state.achievements,
                 unlockedCount = state.unlockedAchievementsCount,
                 totalCount = state.totalAchievements,
-                onClickAchievements = { onEvent(ProfileEvent.NavigateToAchievements(
-                    achievements = TODO()
-                )) }
+                onClickAchievements = {
+                    // Enviar evento de navegación a Achievements
+                    onEvent(ProfileEvent.NavigateToAchievements)
+                }
             )
 
             RecentActivityCard(

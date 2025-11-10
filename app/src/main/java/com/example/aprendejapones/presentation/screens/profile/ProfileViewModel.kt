@@ -83,13 +83,13 @@ class ProfileViewModel : ViewModel() {
 
     private fun navigateToAchievements() {
         viewModelScope.launch {
-            _effects.emit(ProfileEffect.NavigateToAchievements(_state.value.achievements))
+            _effects.emit(ProfileEffect.NavigateToAchievements)
         }
     }
 
     private fun navigateToStats() {
         viewModelScope.launch {
-            _effects.emit(ProfileEffect.NavigateToStats(_state.value.stats))
+            _effects.emit(ProfileEffect.NavigateToStats)
         }
     }
 

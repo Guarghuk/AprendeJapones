@@ -5,18 +5,37 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import androidx.lifecycle.SavedStateHandle
 
 /**
  * ViewModel para LessonScreen
  */
-class LessonViewModel : ViewModel() {
-
+class LessonViewModel(
+    private val savedStateHandle: SavedStateHandle
+) : ViewModel() {
+    private val CURRENT_QUESTION = "current_question_index"
+    private val SELECTED_ANSWER = "selected_answer"
+    private val CORRECT_ANSWERS = "correct_answers_count"
     private val _state = MutableStateFlow(LessonState())
     val state: StateFlow<LessonState> = _state.asStateFlow()
 
     private val _effects = MutableSharedFlow<LessonEffect>()
     val effects: SharedFlow<LessonEffect> = _effects.asSharedFlow()
 
+    init {
+        val restoredAnswer: String? = savedStateHandle.get<String>(SELECTED_ANSWER)
+        val restoredCurrentQuestion: Int = savedStateHandle.get<Int>(CURRENT_QUESTION) ?: 1
+        val restoredCorrectAnswers: Int = savedStateHandle.get<Int>(CORRECT_ANSWERS) ?: 0
+        _state.update { currentState ->
+            currentState.copy(
+                selectedAnswer = restoredAnswer,
+                currentQuestion = restoredCurrentQuestion,
+                correctAnswers = restoredCorrectAnswers,
+                // Asegúrate de restaurar todas las variables que necesitas
+            )
+        }
+        // Opcional: Si hay carga inicial de DB, hazla aquí y override con restored
+    }
     fun onEvent(event: LessonEvent) {
         when (event) {
             is LessonEvent.LoadLesson -> loadLesson(event.functionName)
@@ -85,6 +104,7 @@ class LessonViewModel : ViewModel() {
 
     private fun selectAnswer(answer: String) {
         _state.update { it.copy(selectedAnswer = answer) }
+        savedStateHandle[SELECTED_ANSWER ] = answer
     }
 
     private fun verifyAnswer() {
@@ -93,14 +113,15 @@ class LessonViewModel : ViewModel() {
 
         if (currentQuestion != null && current.selectedAnswer != null) {
             val isCorrect = current.selectedAnswer == currentQuestion.correctAnswer
-
+            val newCorrectAnswers = if (isCorrect) current.correctAnswers + 1 else current.correctAnswers
             _state.update {
                 it.copy(
                     isAnswered = true,
-                    correctAnswers = if (isCorrect) it.correctAnswers + 1 else it.correctAnswers
+                    correctAnswers = newCorrectAnswers,
                 )
-            }
 
+            }
+            savedStateHandle[CORRECT_ANSWERS] = newCorrectAnswers
             viewModelScope.launch {
                 _effects.emit(
                     LessonEffect.ShowToast(
@@ -115,13 +136,15 @@ class LessonViewModel : ViewModel() {
         val current = _state.value
 
         if (current.currentQuestion < current.totalQuestions) {
+            val nextIndex = current.currentQuestion +1
             _state.update {
                 it.copy(
-                    currentQuestion = it.currentQuestion + 1,
+                    currentQuestion = nextIndex,
                     selectedAnswer = null,
                     isAnswered = false
                 )
             }
+            savedStateHandle[CURRENT_QUESTION] = nextIndex
         } else {
             finishLesson()
         }
@@ -131,13 +154,15 @@ class LessonViewModel : ViewModel() {
         val current = _state.value
 
         if (current.currentQuestion > 1) {
+            val nextIndex = current.currentQuestion +1
             _state.update {
                 it.copy(
-                    currentQuestion = it.currentQuestion - 1,
+                    currentQuestion = nextIndex,
                     selectedAnswer = null,
                     isAnswered = false
                 )
             }
+            savedStateHandle[CURRENT_QUESTION] = nextIndex
         }
     }
 
