@@ -1,5 +1,6 @@
 package com.example.aprendejapones.presentation.navigation
 
+import com.example.aprendejapones.presentation.screens.onboarding.OnboardingScreen
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -35,14 +36,14 @@ import com.example.aprendejapones.presentation.screens.stats.StatsScreen
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun KotodamaNavGraph(
+    startDestination: String = Screen.Home.route,
     navController: NavHostController = rememberNavController()
 ) {
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
     // Determinar si mostrar bottom navigation
-    val showBottomNav = currentRoute in Screen.bottomNavScreens.map { it.route }
-
+    val showBottomNav = currentRoute in bottomNavScreens
     Scaffold(
         bottomBar = {
             if (showBottomNav) {
@@ -57,14 +58,29 @@ fun KotodamaNavGraph(
         ) {
             NavHost(
                 navController = navController,
-                startDestination = Screen.Home.route,
+                startDestination = startDestination,
                 // Animaciones globales por defecto
                 enterTransition = { defaultEnterTransition() },
                 exitTransition = { defaultExitTransition() },
                 popEnterTransition = { defaultPopEnterTransition() },
                 popExitTransition = { defaultPopExitTransition() }
             ) {
-                // ============ PANTALLAS PRINCIPALES (Bottom Nav) ============
+                // ============ ONBOARDING (Primera pantalla) ============
+
+                composable(
+                    route = Screen.Onboarding.route,
+                    enterTransition = { fadeIn(animationSpec = tween(500)) },
+                    exitTransition = { fadeOut(animationSpec = tween(500)) }
+                ) {
+                    OnboardingScreen(
+                        onComplete = {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Onboarding.route) { inclusive = true }
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+                }
 
                 // Home Screen - Sin animación entre tabs del bottom nav
                 composable(

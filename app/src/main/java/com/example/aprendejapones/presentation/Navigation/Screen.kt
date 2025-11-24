@@ -4,32 +4,38 @@ package com.example.aprendejapones.presentation.navigation
  * Sealed class que define todas las rutas de navegación
  */
 sealed class Screen(val route: String) {
+    // Onboarding
+    data object Onboarding : Screen("onboarding")
+
     // Pantallas principales (Bottom Navigation)
-    object Home : Screen("home")
-    object Profile : Screen("profile")
-    object Community : Screen("community")
-    object Menu : Screen("menu")
+    data object Home : Screen("home")
+    data object Profile : Screen("profile")
+    data object Community : Screen("community")
+    data object Menu : Screen("menu")
 
     // Pantallas secundarias
-    object Lesson : Screen("lesson/{functionName}") {
+    data object Lesson : Screen("lesson/{functionName}") {
         fun createRoute(functionName: String) = "lesson/$functionName"
     }
 
-    object Achievements : Screen("achievements")
-    object NewPost : Screen("newPost")
-    object DailyGoal : Screen("dailyGoal")
-    object Reminders : Screen("reminders")
-    object Stats : Screen("stats")
+    data object Achievements : Screen("achievements")
+    data object NewPost : Screen("newPost")
+    data object DailyGoal : Screen("dailyGoal")
+    data object Reminders : Screen("reminders")
+    data object Stats : Screen("stats")
 
     // Configuración
-    object EditProfile : Screen("editProfile")
-    object Privacy : Screen("privacy")
-    object Help : Screen("help")
-    object Contact : Screen("contact")
-    object Language : Screen("language")
-
-    companion object {
-        // Pantallas del bottom navigation
-        val bottomNavScreens = listOf(Home, Profile, Community, Menu)
-    }
+    data object EditProfile : Screen("editProfile")
+    data object Privacy : Screen("privacy")
+    data object Help : Screen("help")
+    data object Contact : Screen("contact")
+    data object Language : Screen("language")
 }
+
+// ✅ Definir fuera de la clase para evitar problemas de inicialización
+val bottomNavScreens = listOf(
+    Screen.Home.route,
+    Screen.Profile.route,
+    Screen.Community.route,
+    Screen.Menu.route
+)
