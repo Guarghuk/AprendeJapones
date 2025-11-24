@@ -2,13 +2,16 @@ package com.example.aprendejapones.presentation.screens.reminders
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class RemindersViewModel : ViewModel() {
+@HiltViewModel
+class RemindersViewModel @Inject constructor(): ViewModel() {
 
     private val _state = MutableStateFlow(RemindersState())
     val state: StateFlow<RemindersState> = _state

@@ -3,14 +3,17 @@ package com.example.aprendejapones.presentation.screens.community
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.aprendejapones.utils.MockData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * ViewModel para CommunityScreen
  */
-class CommunityViewModel : ViewModel() {
+@HiltViewModel
+class CommunityViewModel @Inject constructor(): ViewModel() {
 
     private val _state = MutableStateFlow(CommunityState())
     val state: StateFlow<CommunityState> = _state.asStateFlow()

@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.aprendejapones.presentation.components.cards.*
 import com.example.aprendejapones.presentation.theme.*
@@ -22,7 +23,7 @@ import com.example.aprendejapones.presentation.theme.*
 fun ProfileScreen(
     onNavigateToAchievements: () -> Unit = {},
     onNavigateToStats: () -> Unit = {},
-    viewModel: ProfileViewModel = viewModel()
+    viewModel: ProfileViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 

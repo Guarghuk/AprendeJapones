@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.aprendejapones.presentation.theme.*
 
 /**
@@ -25,7 +25,7 @@ import com.example.aprendejapones.presentation.theme.*
 fun LessonScreen(
     functionName: String,
     onBack: () -> Unit,
-    viewModel: LessonViewModel = viewModel()
+    viewModel: LessonViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 

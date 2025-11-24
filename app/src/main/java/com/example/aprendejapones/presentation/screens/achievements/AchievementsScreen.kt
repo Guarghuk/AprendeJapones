@@ -15,14 +15,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.aprendejapones.presentation.theme.*
 import com.example.aprendejapones.utils.Achievement
 
 @Composable
 fun AchievementsScreen(
     onBack: () -> Unit,
-    viewModel: AchievementsViewModel = viewModel()
+    viewModel: AchievementsViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 
@@ -54,8 +54,11 @@ fun AchievementsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 contentPadding = PaddingValues(vertical = 16.dp)
             ) {
-                items(state.achievements) { achievement ->
-                    AchievementCard(achievement = achievement)
+                items(
+                    items = state.achievements,
+                    key = { achievement -> achievement.id }
+                ) { achievement ->
+                    AchievementCard(achievement)
                 }
             }
         }

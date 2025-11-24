@@ -2,13 +2,16 @@ package com.example.aprendejapones.presentation.screens.menu
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * ViewModel para MenuScreen
  */
-class MenuViewModel : ViewModel() {
+@HiltViewModel
+class MenuViewModel @Inject constructor(): ViewModel() {
 
     private val _state = MutableStateFlow(MenuState())
     val state: StateFlow<MenuState> = _state.asStateFlow()

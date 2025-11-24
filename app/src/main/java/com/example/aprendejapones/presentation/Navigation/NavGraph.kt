@@ -69,8 +69,8 @@ fun KotodamaNavGraph(
                 // Home Screen - Sin animación entre tabs del bottom nav
                 composable(
                     route = Screen.Home.route,
-                    enterTransition = { fadeIn(animationSpec = tween(300)) },
-                    exitTransition = { fadeOut(animationSpec = tween(300)) }
+                    enterTransition = { fadeIn(animationSpec = tween(200)) },
+                    exitTransition = { fadeOut(animationSpec = tween(200)) }
                 ) {
                     HomeScreen(
                         onNavigateToLesson = { functionName ->

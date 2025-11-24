@@ -2,15 +2,20 @@ package com.example.aprendejapones.presentation.screens.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.aprendejapones.utils.MockData
-import kotlinx.coroutines.delay
+import com.example.aprendejapones.domain.repository.AchievementRepository
+import com.example.aprendejapones.domain.repository.LessonRepository
+import com.example.aprendejapones.domain.repository.UserRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-/**
- * ViewModel para ProfileScreen
- */
-class ProfileViewModel : ViewModel() {
+@HiltViewModel
+class ProfileViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val achievementRepository: AchievementRepository,
+    private val lessonRepository: LessonRepository
+) : ViewModel() {
 
     private val _state = MutableStateFlow(ProfileState())
     val state: StateFlow<ProfileState> = _state.asStateFlow()
@@ -37,17 +42,22 @@ class ProfileViewModel : ViewModel() {
             _state.update { it.copy(isLoading = true, error = null) }
 
             try {
-                delay(300) // Simular carga
+                // Get user
+                val user = userRepository.getCurrentUser()
 
-                val user = MockData.getMockUser()
-                val mockStats = MockData.getMockStats()
+                // Get achievements
+                val achievements = achievementRepository.getUserAchievements()
+
+                // Get lesson stats
+                val lessonStats = lessonRepository.getLessonStats()
                 val stats = ProfileStats(
-                    streak = mockStats["streak"] as? Int ?: 0,
-                    lessonsCompleted = mockStats["lessonsCompleted"] as? Int ?: 0,
-                    totalTimeHours = mockStats["totalTime"] as? String ?: "0h"
+                    streak = user?.streak ?: 0,
+                    lessonsCompleted = lessonStats.totalLessonsCompleted,
+                    totalTimeHours = "${lessonStats.totalStudyTimeMinutes / 60}h"
                 )
-                val achievements = MockData.getMockAchievements()
-                val activity = MockData.getMockRecentActivity()
+
+                // Mock activity for now
+                val activity = com.example.aprendejapones.utils.MockData.getMockRecentActivity()
 
                 _state.update {
                     it.copy(
@@ -62,7 +72,7 @@ class ProfileViewModel : ViewModel() {
                 _state.update {
                     it.copy(
                         isLoading = false,
-                        error = "Error al cargar perfil: ${e.message}"
+                        error = "Error loading profile: ${e.message}"
                     )
                 }
             }
@@ -72,11 +82,10 @@ class ProfileViewModel : ViewModel() {
     private fun refreshData() {
         viewModelScope.launch {
             try {
-                val user = MockData.getMockUser()
-                _state.update { it.copy(user = user) }
-                _effects.emit(ProfileEffect.ShowToast("Perfil actualizado"))
+                loadInitialData()
+                _effects.emit(ProfileEffect.ShowToast("Profile refreshed"))
             } catch (e: Exception) {
-                _effects.emit(ProfileEffect.ShowToast("Error al actualizar"))
+                _effects.emit(ProfileEffect.ShowToast("Error refreshing"))
             }
         }
     }

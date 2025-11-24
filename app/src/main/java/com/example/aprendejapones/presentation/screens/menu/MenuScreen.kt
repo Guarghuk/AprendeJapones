@@ -15,7 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.aprendejapones.presentation.theme.*
 
 /**
@@ -24,7 +24,7 @@ import com.example.aprendejapones.presentation.theme.*
 @Composable
 fun MenuScreen(
     onNavigateToScreen: (String) -> Unit = {},
-    viewModel: MenuViewModel = viewModel()
+    viewModel: MenuViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
 

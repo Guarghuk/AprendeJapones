@@ -1,39 +1,112 @@
 package com.example.aprendejapones.presentation.screens.home
 
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.aprendejapones.domain.model.DailyChallenge
-import com.example.aprendejapones.domain.model.User
+import com.example.aprendejapones.domain.repository.AchievementRepository
+import com.example.aprendejapones.domain.repository.LessonRepository
+import com.example.aprendejapones.domain.repository.ProgressRepository
+import com.example.aprendejapones.domain.repository.UserRepository
 import com.example.aprendejapones.utils.MockData
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 /**
- * ViewModel para la pantalla Home
- * Usa datos mock para el desarrollo de UI
+ * ViewModel for Home Screen
+ * Now uses real repositories instead of mock data
  */
-class HomeViewModel(
-    private val savedStateHandle: SavedStateHandle  // Inyectado para persistencia granular
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val userRepository: UserRepository,
+    private val lessonRepository: LessonRepository,
+    private val achievementRepository: AchievementRepository,
+    private val progressRepository: ProgressRepository
 ) : ViewModel() {
 
-    // Estado privado mutable
     private val _state = MutableStateFlow(HomeState())
-
-    // Estado público inmutable
     val state: StateFlow<HomeState> = _state.asStateFlow()
 
-    // Canal para efectos secundarios (one-time events)
     private val _effects = MutableSharedFlow<HomeEffect>()
     val effects: SharedFlow<HomeEffect> = _effects.asSharedFlow()
 
     init {
+        initializeUser()
         loadInitialData()
     }
 
     /**
-     * Maneja todos los eventos de la UI
+     * Initialize or get existing user
+     */
+    private fun initializeUser() {
+        viewModelScope.launch (Dispatchers.IO) {
+            try {
+                // Get or create user with UUID
+                val user = userRepository.getOrCreateUser()
+
+                // Initialize default data
+                progressRepository.initializeDefaultProgress()
+                achievementRepository.initializeDefaultAchievements()
+                lessonRepository.initializeTodayChallenge()
+                withContext(Dispatchers.Main) { /* Update state on main */ }
+
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(error = "Error initializing user: ${e.message}")
+                }
+            }
+        }
+    }
+
+    /**
+     * Load all home screen data
+     */
+    private fun loadInitialData() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+
+            try {
+                // Collect user flow with debounce
+                userRepository.getCurrentUserFlow()
+                    .debounce(300)  // Add this import: import kotlinx.coroutines.flow.debounce
+                    .collect { user ->
+                        _state.update { it.copy(user = user) }
+                    }
+
+                // Same for daily challenge
+                lessonRepository.getTodayChallengeFlow()
+                    .debounce(300)
+                    .collect { challenge ->
+                        _state.update { it.copy(dailyChallenge = challenge) }
+                    }
+
+                // Static data (unchanged)
+                val kitsuneMessage = MockData.getMockKitsuneMessage()
+                val lessonFunctions = MockData.getMockLessonFunctions()
+
+                _state.update {
+                    it.copy(
+                        kitsuneMessage = kitsuneMessage,
+                        lessonFunctions = lessonFunctions,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        error = "Error loading data: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    /**
+     * Handle UI events
      */
     fun onEvent(event: HomeEvent) {
         when (event) {
@@ -45,139 +118,44 @@ class HomeViewModel(
         }
     }
 
-    /**
-     * Carga los datos iniciales (simulado), restaurando de SavedStateHandle si existe
-     */
-    private fun loadInitialData() {
-        viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, error = null) }
-            try {
-                // Simular carga de red
-                delay(500)
-
-                // Cargar datos mock base
-                val user = MockData.getMockUser()
-                val challenge = MockData.getMockDailyChallenge()
-                val message = MockData.getMockKitsuneMessage()
-                val functions = MockData.getMockLessonFunctions()
-
-                // Restaurar estados mutables de SavedStateHandle (si existen, override los mock)
-                val restoredRank: String? = savedStateHandle["user_rank"]
-                val restoredStreak: Int? = savedStateHandle["user_streak"]
-                val restoredDrops: Int? = savedStateHandle["user_drops"]
-                val restoredChallengeCompleted: Int? = savedStateHandle["challenge_completed"]
-                val restoredChallengeTotal: Int? = savedStateHandle["challenge_total"]
-                val restoredChallengeRewardXP: Int? = savedStateHandle["challenge_reward_xp"]
-
-                val restoredUser = user.copy(
-                    rank = restoredRank ?: user.rank,
-                    streak = restoredStreak ?: user.streak,
-                    drops = restoredDrops ?: user.drops
-                )
-
-                val restoredChallenge = challenge.copy(
-                    completed = restoredChallengeCompleted ?: challenge.completed,
-                    total = restoredChallengeTotal ?: challenge.total,
-                    rewardXP = restoredChallengeRewardXP ?: challenge.rewardXP
-                )
-
-                _state.update {
-                    it.copy(
-                        user = restoredUser,
-                        dailyChallenge = restoredChallenge,
-                        kitsuneMessage = message,
-                        lessonFunctions = functions,
-                        isLoading = false
-                    )
-                }
-
-                // Guardar los valores iniciales/restaurados en SavedStateHandle por si hay cambios futuros
-                saveUserState(restoredUser)
-                saveChallengeState(restoredChallenge)
-
-            } catch (e: Exception) {
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        error = "Error al cargar los datos: ${e.message}"
-                    )
-                }
-            }
-        }
-    }
-
-    /**
-     * Refresca los datos y guarda cambios en SavedStateHandle
-     */
     private fun refreshData() {
         viewModelScope.launch {
             try {
-                val user = MockData.getMockUser()  // En real, de repo
-                val challenge = MockData.getMockDailyChallenge()
-
-                _state.update { it.copy(user = user, dailyChallenge = challenge) }
-
-                // Guardar los nuevos valores
-                saveUserState(user)
-                saveChallengeState(challenge)
-
-                _effects.emit(HomeEffect.ShowToast("Datos actualizados"))
+                lessonRepository.initializeTodayChallenge()
+                _effects.emit(HomeEffect.ShowToast("Data refreshed"))
             } catch (e: Exception) {
-                _effects.emit(HomeEffect.ShowToast("Error al actualizar"))
+                _effects.emit(HomeEffect.ShowToast("Error refreshing"))
             }
         }
     }
 
-    /**
-     * Maneja la selección de una función
-     */
     private fun handleFunctionSelection(functionName: String) {
         viewModelScope.launch {
             _effects.emit(HomeEffect.NavigateToLesson(functionName))
         }
     }
 
-    /**
-     * Actualiza el progreso del desafío diario y guarda en SavedStateHandle
-     */
     private fun updateChallengeProgress() {
         viewModelScope.launch {
-            val currentChallenge = _state.value.dailyChallenge ?: return@launch
-            if (currentChallenge.completed < currentChallenge.total) {
-                val updatedChallenge = currentChallenge.copy(
-                    completed = currentChallenge.completed + 1
-                )
-                _state.update { it.copy(dailyChallenge = updatedChallenge) }
+            try {
+                lessonRepository.updateChallengeProgress()
 
-                // Guardar el progreso actualizado
-                saveChallengeState(updatedChallenge)
-
-                if (updatedChallenge.isCompleted) {
+                val challenge = _state.value.dailyChallenge
+                if (challenge?.isCompleted == true) {
+                    // Award XP for completing daily challenge
+                    userRepository.addXP(challenge.rewardXP)
                     _effects.emit(
-                        HomeEffect.ShowToast("¡Desafío completado! +${updatedChallenge.rewardXP} XP")
+                        HomeEffect.ShowToast("Challenge completed! +${challenge.rewardXP} XP")
                     )
                 }
+            } catch (e: Exception) {
+                _effects.emit(HomeEffect.ShowToast("Error updating challenge"))
             }
         }
     }
 
-    /**
-     * Descarta el error actual
-     */
+
     private fun dismissError() {
         _state.update { it.copy(error = null) }
-    }
-
-    // Helpers privados para guardar estados granularmente
-    private fun saveUserState(user: User) {
-        savedStateHandle["user_rank"] = user.rank
-        savedStateHandle["user_streak"] = user.streak
-        savedStateHandle["user_drops"] = user.drops
-    }
-
-    private fun saveChallengeState(challenge: DailyChallenge) {
-        savedStateHandle["challenge_completed"] = challenge.completed
-        savedStateHandle["challenge_total"] = challenge.total
-        savedStateHandle["challenge_reward_xp"] = challenge.rewardXP
     }
 }
