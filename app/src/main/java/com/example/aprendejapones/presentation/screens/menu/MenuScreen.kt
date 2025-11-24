@@ -59,7 +59,6 @@ private fun MenuContent(
             .fillMaxSize()
             .background(BackgroundGray)
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 80.dp)
     ) {
         // Header
         Box(
@@ -183,7 +182,6 @@ private fun MenuSection(
                 fontSize = 13.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary,
-                modifier = Modifier.padding(bottom = 10.dp)
             )
 
             items.forEachIndexed { index, item ->

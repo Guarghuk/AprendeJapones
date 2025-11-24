@@ -85,8 +85,8 @@ private fun HomeContent(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundGray)
-            .padding(bottom = 80.dp),  // Keep bottom padding for bottom nav or other elements
+            .background(BackgroundGray),
+        contentPadding = PaddingValues(bottom = 16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)  // Consistent spacing between items
     ) {
         item {
@@ -287,8 +287,6 @@ private fun FunctionsGrid(
                                 onClick = { onSelectFunction(functions[i + 1].name) }
                             )
                         }
-                    } else {
-                        Spacer(modifier = Modifier.weight(1f))
                     }
                 }
             }

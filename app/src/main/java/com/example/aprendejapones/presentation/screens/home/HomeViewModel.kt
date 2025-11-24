@@ -69,21 +69,23 @@ class HomeViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, error = null) }
 
             try {
-                // Collect user flow with debounce
-                userRepository.getCurrentUserFlow()
-                    .debounce(300)  // Add this import: import kotlinx.coroutines.flow.debounce
-                    .collect { user ->
-                        _state.update { it.copy(user = user) }
-                    }
+                // Collect user flow in parallel
+                launch {
+                    userRepository.getCurrentUserFlow()
+                        .collect { user ->
+                            _state.update { it.copy(user = user) }
+                        }
+                }
 
-                // Same for daily challenge
-                lessonRepository.getTodayChallengeFlow()
-                    .debounce(300)
-                    .collect { challenge ->
-                        _state.update { it.copy(dailyChallenge = challenge) }
-                    }
+                // Collect daily challenge in parallel
+                launch {
+                    lessonRepository.getTodayChallengeFlow()
+                        .collect { challenge ->
+                            _state.update { it.copy(dailyChallenge = challenge) }
+                        }
+                }
 
-                // Static data (unchanged)
+                // Load static data (only once)
                 val kitsuneMessage = MockData.getMockKitsuneMessage()
                 val lessonFunctions = MockData.getMockLessonFunctions()
 
