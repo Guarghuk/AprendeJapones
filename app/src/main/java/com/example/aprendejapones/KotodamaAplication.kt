@@ -1,19 +1,34 @@
 package com.example.aprendejapones
 
 import android.app.Application
+import androidx.hilt.work.HiltWorkerFactory
+import androidx.work.Configuration
+import com.example.aprendejapones.workers.WorkManagerScheduler
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 /**
  * Application class for Kotodama
- * Initializes Hilt dependency injection
+ * Initializes Hilt dependency injection and WorkManager
  */
 @HiltAndroidApp
-class KotodamaApplication : Application() {
+class KotodamaApplication : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
+    @Inject
+    lateinit var workManagerScheduler: WorkManagerScheduler
 
     override fun onCreate() {
         super.onCreate()
 
-        // Any app-wide initialization can go here
-        // Hilt will handle DI initialization automatically
+        // Programar verificación diaria de racha
+        workManagerScheduler.scheduleStreakCheck()
     }
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .build()
 }

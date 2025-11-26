@@ -6,15 +6,26 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import androidx.lifecycle.SavedStateHandle
+import com.example.aprendejapones.data.local.database.entity.DailyChallengeEntity
+import com.example.aprendejapones.domain.manager.StreakManager
+import com.example.aprendejapones.domain.repository.LessonContentRepository
+import com.example.aprendejapones.domain.repository.LessonRepository
+import com.example.aprendejapones.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 /**
  * ViewModel para LessonScreen
  */
+
 @HiltViewModel
 class LessonViewModel @Inject constructor(
-    private val savedStateHandle: SavedStateHandle
+    private val savedStateHandle: SavedStateHandle,
+    private val lessonContentRepository: LessonContentRepository,
+    private val lessonRepository: LessonRepository,
+    private val userRepository: UserRepository,
+    private val streakManager: StreakManager
+    //private val dailyChallengeEntity: DailyChallengeEntity
 ) : ViewModel() {
     private val CURRENT_QUESTION = "current_question_index"
     private val SELECTED_ANSWER = "selected_answer"
@@ -54,53 +65,25 @@ class LessonViewModel @Inject constructor(
     private fun loadLesson(functionName: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true) }
-            delay(300)
 
-            // Mock questions
-            val questions = listOf(
-                Question(
-                    "1",
-                    "¿Qué significa este kanji?",
-                    "水",
-                    listOf("A) Fuego", "B) Agua", "C) Tierra", "D) Aire"),
-                    "B) Agua"
-                ),
-                Question(
-                    "2",
-                    "¿Qué significa este kanji?",
-                    "火",
-                    listOf("A) Fuego", "B) Agua", "C) Tierra", "D) Aire"),
-                    "A) Fuego"
-                ),
-                Question(
-                    "3",
-                    "¿Qué significa este hiragana?",
-                    "あ",
-                    listOf("A) A", "B) I", "C) U", "D) E"),
-                    "A) A"
-                ),
-                Question(
-                    "4",
-                    "¿Qué significa este katakana?",
-                    "ア",
-                    listOf("A) A", "B) I", "C) U", "D) E"),
-                    "A) A"
-                ),
-                Question(
-                    "5",
-                    "¿Cómo se dice 'gracias' en japonés?",
-                    "?",
-                    listOf("A) Konnichiwa", "B) Arigatou", "C) Sayonara", "D) Ohayou"),
-                    "B) Arigatou"
-                )
-            )
+            try {
+                // Obtener preguntas del repositorio
+                val questions = lessonContentRepository.getQuestionsForLesson(functionName)
 
-            _state.update {
-                it.copy(
-                    functionName = functionName,
-                    questions = questions,
-                    isLoading = false
-                )
+                _state.update {
+                    it.copy(
+                        functionName = functionName,
+                        questions = questions,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
+                _state.update {
+                    it.copy(
+                        isLoading = false,
+                        questions = emptyList()
+                    )
+                }
             }
         }
     }
@@ -170,8 +153,41 @@ class LessonViewModel @Inject constructor(
     }
 
     private fun finishLesson() {
-        _state.update { it.copy(showResults = true) }
+        viewModelScope.launch {
+            val state = _state.value
+
+            try {
+                // Calcular XP ganado
+                val xpEarned = state.correctAnswers * 10
+
+                // Guardar lección completada
+                lessonRepository.saveLesson(
+                    lessonType = state.functionName,
+                    lessonName = state.functionName,
+                    totalQuestions = state.totalQuestions,
+                    correctAnswers = state.correctAnswers,
+                    xpEarned = xpEarned,
+                    timeSpentSeconds = 0
+                )
+
+                // Actualizar XP
+                userRepository.addXP(xpEarned)
+
+                // ✅ Actualizar racha automáticamente
+                streakManager.checkAndUpdateStreak()
+
+                // Actualizar desafío diario
+                lessonRepository.updateChallengeProgress()
+
+                // Mostrar resultados
+                _state.update { it.copy(showResults = true) }
+
+            } catch (e: Exception) {
+                _effects.emit(LessonEffect.ShowToast("Error al guardar progreso"))
+            }
+        }
     }
+
 
     private fun restartLesson() {
         _state.update {

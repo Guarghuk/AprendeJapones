@@ -20,10 +20,10 @@ import com.example.aprendejapones.utils.Post
  */
 @Composable
 fun PostCard(
+    modifier: Modifier = Modifier,
     post: Post,
     onLike: (String) -> Unit = {},
-    onSave: (String) -> Unit = {},
-    modifier: Modifier = Modifier
+    onSave: (String) -> Unit = {}
 ) {
     Box(
         modifier = modifier

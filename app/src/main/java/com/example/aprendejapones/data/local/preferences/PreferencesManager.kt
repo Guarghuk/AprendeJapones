@@ -4,10 +4,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,7 +17,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class PreferencesManager @Inject constructor(
-    private val dataStore: DataStore<Preferences>
+    val dataStore: DataStore<Preferences>
 ) {
     companion object {
         private val HAS_SEEN_ONBOARDING = booleanPreferencesKey("has_seen_onboarding")
@@ -29,14 +27,9 @@ class PreferencesManager @Inject constructor(
 
     // ============ Onboarding ============
 
-    val hasSeenOnboarding: Flow<Boolean> = dataStore.data
-        .catch { exception ->
-            // Si hay error al leer, emitir false (no ha visto onboarding)
-            emit(emptyPreferences())
-        }
-        .map { preferences ->
-            preferences[HAS_SEEN_ONBOARDING] ?: false
-        }
+    val hasSeenOnboarding: Flow<Boolean> = dataStore.data.map { preferences ->
+        preferences[HAS_SEEN_ONBOARDING] ?: false
+    }
 
     suspend fun setOnboardingCompleted() {
         dataStore.edit { preferences ->
@@ -45,7 +38,6 @@ class PreferencesManager @Inject constructor(
     }
 
     // ============ First Launch ============
-
     val isFirstLaunch: Flow<Boolean> = dataStore.data.map { preferences ->
         preferences[IS_FIRST_LAUNCH] ?: true
     }
