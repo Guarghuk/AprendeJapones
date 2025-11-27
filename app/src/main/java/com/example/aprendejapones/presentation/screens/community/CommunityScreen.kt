@@ -58,14 +58,16 @@ fun CommunityScreen(
 
     CommunityContent(
         state = state,
-        onEvent = viewModel::onEvent
+        onEvent = viewModel::onEvent,
+        onNavigateToNewPost = onNavigateToNewPost
     )
 }
 
 @Composable
 private fun CommunityContent(
     state: CommunityState,
-    onEvent: (CommunityEvent) -> Unit
+    onEvent: (CommunityEvent) -> Unit,
+    onNavigateToNewPost: () -> Unit
 ) {
     if (state.isLoading) {
         Box(
@@ -115,7 +117,7 @@ private fun CommunityContent(
         ) {
             // Botón nueva publicación
             Button(
-                onClick = { onEvent(CommunityEvent.CreateNewPost) },
+                onClick = { onNavigateToNewPost() },
                 modifier = Modifier
                     .fillMaxWidth()
                     .border(2.dp, PrimaryGreen, RoundedCornerShape(8.dp)),

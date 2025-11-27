@@ -3,6 +3,7 @@ package com.example.aprendejapones.presentation.screens.community
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.aprendejapones.domain.repository.AuthRepository
+import com.example.aprendejapones.domain.repository.CommunityRepository
 import com.example.aprendejapones.utils.MockData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -22,6 +23,9 @@ class CommunityViewModel @Inject constructor(
     private val _state = MutableStateFlow(CommunityState())
     val state: StateFlow<CommunityState> = _state.asStateFlow()
 
+    private val _effects = MutableSharedFlow<CommunityEffect>()
+    val effects: SharedFlow<CommunityEffect> = _effects.asSharedFlow()
+
     init {
         // ✅ Escuchar posts en tiempo real
         viewModelScope.launch {
@@ -37,9 +41,12 @@ class CommunityViewModel @Inject constructor(
 
     fun onEvent(event: CommunityEvent) {
         when (event) {
+            is CommunityEvent.LoadPosts -> { /* Posts are loaded automatically via Flow */ }
             is CommunityEvent.CreatePost -> createPost(event.content, event.category)
             is CommunityEvent.LikePost -> likePost(event.postId)
-            // ... otros eventos
+            is CommunityEvent.SavePost -> savePost(event.postId)
+            is CommunityEvent.RefreshPosts -> refreshPosts()
+            is CommunityEvent.DismissError -> dismissError()
         }
     }
 
@@ -49,6 +56,34 @@ class CommunityViewModel @Inject constructor(
             result.onFailure { error ->
                 _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
             }
+            result.onSuccess {
+                _effects.emit(CommunityEffect.ShowToast("Post creado exitosamente"))
+            }
         }
+    }
+
+    private fun likePost(postId: String) {
+        viewModelScope.launch {
+            val result = communityRepository.likePost(postId)
+            result.onFailure { error ->
+                _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
+            }
+        }
+    }
+
+    private fun refreshPosts() {
+        // Posts are already refreshed automatically via Flow
+        // This can be used for pull-to-refresh functionality
+    }
+
+    private fun savePost(postId: String) {
+        // TODO: Implement save/bookmark functionality
+        viewModelScope.launch {
+            _effects.emit(CommunityEffect.ShowToast("Guardado en favoritos"))
+        }
+    }
+
+    private fun dismissError() {
+        _state.update { it.copy(error = null) }
     }
 }

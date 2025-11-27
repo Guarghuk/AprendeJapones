@@ -12,8 +12,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.aprendejapones.domain.model.FirestorePost
 import com.example.aprendejapones.presentation.theme.*
-import com.example.aprendejapones.utils.Post
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Card de publicación en comunidad
@@ -21,7 +24,7 @@ import com.example.aprendejapones.utils.Post
 @Composable
 fun PostCard(
     modifier: Modifier = Modifier,
-    post: Post,
+    post: FirestorePost,
     onLike: (String) -> Unit = {},
     onSave: (String) -> Unit = {}
 ) {
@@ -46,7 +49,7 @@ fun PostCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = post.author.first().toString(),
+                        text = post.authorName.firstOrNull()?.toString() ?: "?",
                         fontWeight = FontWeight.Bold,
                         color = PrimaryGreen,
                         fontSize = 16.sp
@@ -55,13 +58,13 @@ fun PostCard(
 
                 Column(modifier = Modifier.padding(start = 12.dp)) {
                     Text(
-                        text = post.author,
+                        text = post.authorName,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
                     Text(
-                        text = post.time,
+                        text = formatTimestamp(post.createdAt),
                         fontSize = 10.sp,
                         color = TextTertiary
                     )
@@ -83,12 +86,12 @@ fun PostCard(
                 modifier = Modifier.padding(top = 4.dp)
             ) {
                 Text(
-                    text = "💬 ${post.replies} respuestas",
+                    text = "💬 ${post.commentsCount} respuestas",
                     fontSize = 10.sp,
                     color = TextSecondary
                 )
                 Text(
-                    text = "👍 ${post.likes}",
+                    text = "👍 ${post.likesCount}",
                     fontSize = 10.sp,
                     color = TextSecondary,
                     modifier = Modifier.clickable { onLike(post.id) }
@@ -100,6 +103,24 @@ fun PostCard(
                     modifier = Modifier.clickable { onSave(post.id) }
                 )
             }
+        }
+    }
+}
+
+/**
+ * Format timestamp to readable string
+ */
+private fun formatTimestamp(timestamp: Long): String {
+    val now = System.currentTimeMillis()
+    val diff = now - timestamp
+    
+    return when {
+        diff < 60000 -> "Hace un momento"
+        diff < 3600000 -> "Hace ${diff / 60000} min"
+        diff < 86400000 -> "Hace ${diff / 3600000}h"
+        else -> {
+            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            dateFormat.format(Date(timestamp))
         }
     }
 }
