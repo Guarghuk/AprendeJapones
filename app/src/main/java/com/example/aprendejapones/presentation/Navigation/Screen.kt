@@ -30,6 +30,19 @@ sealed class Screen(val route: String) {
     data object Help : Screen("help")
     data object Contact : Screen("contact")
     data object Language : Screen("language")
+
+    // ✅ Rutas de autenticación
+    object Login : Screen("login")
+    object Register : Screen("register")
+
+    // ✅ Rutas de perfil
+    object UserProfile : Screen("user_profile/{userId}") {
+        fun createRoute(userId: String) = "user_profile/$userId"
+    }
+
+    // ✅ Sincronización
+    object Sync : Screen("sync")
+
 }
 
 // ✅ Definir fuera de la clase para evitar problemas de inicialización

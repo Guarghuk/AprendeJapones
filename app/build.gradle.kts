@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -79,6 +80,7 @@ dependencies {
 
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation(libs.androidx.material3)
 
     // Testing
     testImplementation("junit:junit:4.13.2")
@@ -110,4 +112,25 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.hilt:hilt-work:1.2.0")
     ksp("androidx.hilt:hilt-compiler:1.2.0")
+
+    // ✅ Firebase BOM (Bill of Materials)
+    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+
+    // ✅ Firebase Auth
+    implementation("com.google.firebase:firebase-auth-ktx")
+
+    // ✅ Firebase Firestore
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    // ✅ Firebase Storage (para imágenes de perfil futuras)
+    implementation("com.google.firebase:firebase-storage-ktx")
+
+    // ✅ Google Sign In
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+
+    // ✅ Coroutines Play Services
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
+    //firebase analytics
+    implementation("com.google.firebase:firebase-analytics")
 }

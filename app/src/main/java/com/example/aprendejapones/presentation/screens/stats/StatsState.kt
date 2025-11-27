@@ -1,5 +1,7 @@
 package com.example.aprendejapones.presentation.screens.stats
 
+import com.example.aprendejapones.domain.repository.CategoryProgress
+
 data class StatsState(
     val isLoading: Boolean = true,
     val totalXP: Int = 0,
@@ -15,11 +17,7 @@ data class StatsState(
     val longestStreak: Int = 0,
     val totalDaysStudied: Int = 0,
 
-    val hiraganaProgress: Int = 0,
-    val katakanaProgress: Int = 0,
-    val kanjiProgress: Int = 0,
-    val grammarProgress: Int = 0,
-    val vocabularyProgress: Int = 0,
+    val progressList: List<CategoryProgress> = emptyList(),
 
     val weeklyMinutes: List<Int> = List(7) { 0 } // [L, M, X, J, V, S, D]
 )

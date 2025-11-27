@@ -25,10 +25,12 @@ import com.example.aprendejapones.presentation.screens.lesson.LessonScreen
 import com.example.aprendejapones.presentation.screens.menu.MenuScreen
 import com.example.aprendejapones.presentation.screens.profile.ProfileScreen
 import com.example.aprendejapones.presentation.screens.achievements.AchievementsScreen
+import com.example.aprendejapones.presentation.screens.auth.LoginScreen
 import com.example.aprendejapones.presentation.screens.newpost.NewPostScreen
 import com.example.aprendejapones.presentation.screens.dailygoal.DailyGoalScreen
 import com.example.aprendejapones.presentation.screens.reminders.RemindersScreen
 import com.example.aprendejapones.presentation.screens.stats.StatsScreen
+import com.example.aprendejapones.presentation.screens.sync.SyncScreen
 
 /**
  * Composable principal que configura la navegación de la app con animaciones
@@ -39,6 +41,7 @@ fun KotodamaNavGraph(
     startDestination: String = Screen.Home.route,
     navController: NavHostController = rememberNavController()
 ) {
+    val startDestination = if (isUserLoggedIn()) Screen.Home.route else Screen.Login.route
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
@@ -65,6 +68,49 @@ fun KotodamaNavGraph(
                 popEnterTransition = { defaultPopEnterTransition() },
                 popExitTransition = { defaultPopExitTransition() }
             ) {
+                composable(Screen.Login.route) {
+                    LoginScreen(
+                        onLoginSuccess = {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Login.route) { inclusive = true }
+                            }
+                        },
+                        onNavigateToRegister = {
+                            navController.navigate(Screen.Register.route)
+                        }
+                    )
+                }
+
+                // ✅ Register
+                composable(Screen.Register.route) {
+                    RegisterScreen(
+                        onRegisterSuccess = {
+                            navController.navigate(Screen.Home.route) {
+                                popUpTo(Screen.Login.route) { inclusive = true }
+                            }
+                        },
+                        onNavigateToLogin = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                // ✅ User Profile
+                composable(
+                    route = Screen.UserProfile.route,
+                    arguments = listOf(navArgument("userId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val userId = backStackEntry.arguments?.getString("userId") ?: ""
+                    UserProfileScreen(
+                        userId = userId,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                // ✅ Sync
+                composable(Screen.Sync.route) {
+                    SyncScreen(onBack = { navController.popBackStack() })
+                }
                 // ============ ONBOARDING (Primera pantalla) ============
 
                 composable(

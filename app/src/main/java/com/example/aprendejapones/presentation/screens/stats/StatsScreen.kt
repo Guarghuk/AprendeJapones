@@ -15,6 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.aprendejapones.domain.repository.CategoryProgress
 import com.example.aprendejapones.presentation.theme.*
 
 @Composable
@@ -72,11 +73,7 @@ fun StatsScreen(
 
                 // Practice breakdown
                 PracticeBreakdownCard(
-                    hiraganaProgress = state.hiraganaProgress,
-                    katakanaProgress = state.katakanaProgress,
-                    kanjiProgress = state.kanjiProgress,
-                    grammarProgress = state.grammarProgress,
-                    vocabularyProgress = state.vocabularyProgress
+                    progressList = state.progressList
                 )
 
                 // Weekly activity
@@ -302,11 +299,7 @@ private fun StreakStatItem(value: String, label: String) {
 
 @Composable
 private fun PracticeBreakdownCard(
-    hiraganaProgress: Int,
-    katakanaProgress: Int,
-    kanjiProgress: Int,
-    grammarProgress: Int,
-    vocabularyProgress: Int
+    progressList: List<CategoryProgress>  // ✅ Cambiar parámetro
 ) {
     Box(
         modifier = Modifier
@@ -324,16 +317,27 @@ private fun PracticeBreakdownCard(
                 modifier = Modifier.padding(bottom = 12.dp)
             )
 
-            ProgressItem("あ Hiragana", hiraganaProgress)
-            Spacer(modifier = Modifier.height(10.dp))
-            ProgressItem("ア Katakana", katakanaProgress)
-            Spacer(modifier = Modifier.height(10.dp))
-            ProgressItem("漢 Kanji", kanjiProgress)
-            Spacer(modifier = Modifier.height(10.dp))
-            ProgressItem("📖 Gramática", grammarProgress)
-            Spacer(modifier = Modifier.height(10.dp))
-            ProgressItem("💬 Vocabulario", vocabularyProgress)
+            // ✅ Usar datos reales
+            progressList.forEach { progress ->
+                ProgressItem(
+                    label = getCategoryDisplayName(progress.category),
+                    progress = progress.progress
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+            }
         }
+    }
+}
+
+// ✅ Agregar función helper
+private fun getCategoryDisplayName(category: String): String {
+    return when (category) {
+        "hiragana" -> "あ Hiragana"
+        "katakana" -> "ア Katakana"
+        "kanji" -> "漢 Kanji"
+        "grammar" -> "📖 Gramática"
+        "vocabulary" -> "💬 Vocabulario"
+        else -> category
     }
 }
 

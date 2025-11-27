@@ -36,4 +36,16 @@ abstract class RepositoryModule {
     abstract fun bindLessonRepository(
         lessonRepositoryImpl: LessonRepositoryImpl
     ): LessonRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAuthRepository(
+        authRepositoryImpl: AuthRepositoryImpl
+    ): AuthRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFirestoreCommunityRepository(
+        firestoreCommunityRepositoryImpl: FirestoreCommunityRepositoryImpl
+    ): CommunityRepository
 }

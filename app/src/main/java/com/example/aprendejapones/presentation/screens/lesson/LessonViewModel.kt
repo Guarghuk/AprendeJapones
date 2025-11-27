@@ -10,6 +10,7 @@ import com.example.aprendejapones.data.local.database.entity.DailyChallengeEntit
 import com.example.aprendejapones.domain.manager.StreakManager
 import com.example.aprendejapones.domain.repository.LessonContentRepository
 import com.example.aprendejapones.domain.repository.LessonRepository
+import com.example.aprendejapones.domain.repository.ProgressRepository
 import com.example.aprendejapones.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -24,7 +25,8 @@ class LessonViewModel @Inject constructor(
     private val lessonContentRepository: LessonContentRepository,
     private val lessonRepository: LessonRepository,
     private val userRepository: UserRepository,
-    private val streakManager: StreakManager
+    private val streakManager: StreakManager,
+    private val progressRepository: ProgressRepository
     //private val dailyChallengeEntity: DailyChallengeEntity
 ) : ViewModel() {
     private val CURRENT_QUESTION = "current_question_index"
@@ -173,8 +175,11 @@ class LessonViewModel @Inject constructor(
                 // Actualizar XP
                 userRepository.addXP(xpEarned)
 
-                // ✅ Actualizar racha automáticamente
+                // Actualizar racha
                 streakManager.checkAndUpdateStreak()
+
+                // ✅ Actualizar progreso por categoría
+                updateCategoryProgress(state.functionName, state.correctAnswers, state.totalQuestions)
 
                 // Actualizar desafío diario
                 lessonRepository.updateChallengeProgress()
@@ -186,6 +191,37 @@ class LessonViewModel @Inject constructor(
                 _effects.emit(LessonEffect.ShowToast("Error al guardar progreso"))
             }
         }
+    }
+
+    private suspend fun updateCategoryProgress(
+        lessonName: String,
+        correctAnswers: Int,
+        totalQuestions: Int
+    ) {
+        // Mapear nombre de lección a categoría
+        val category = when (lessonName) {
+            "Hiragana" -> "hiragana"
+            "Katakana" -> "katakana"
+            "Kanji", "漢" -> "kanji"
+            "Gramática", "📖" -> "grammar"
+            "Vocabulario", "Haz Frases", "Conversación" -> "vocabulary"
+            else -> return // No actualizar si no es una categoría conocida
+        }
+
+        // Obtener progreso actual
+        val currentProgress = progressRepository.getProgressByCategory(category)
+
+        // Calcular nuevo progreso (incrementar basado en respuestas correctas)
+        val progressIncrement = (correctAnswers.toFloat() / totalQuestions * 5).toInt() // 5% max por lección
+        val newProgress = ((currentProgress?.progress ?: 0) + progressIncrement).coerceIn(0, 100)
+        val newItemsLearned = (currentProgress?.itemsLearned ?: 0) + correctAnswers
+
+        // Guardar progreso actualizado
+        progressRepository.updateProgress(
+            category = category,
+            progressPercent = newProgress,
+            itemsLearned = newItemsLearned
+        )
     }
 
 

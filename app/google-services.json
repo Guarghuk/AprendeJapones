@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "115013265410",
+    "project_id": "kotodama-aprendejapones",
+    "storage_bucket": "kotodama-aprendejapones.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:115013265410:android:8eb148a0e7e7d7ae39df1b",
+        "android_client_info": {
+          "package_name": "com.example.AprendeJapones"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAe17ZBbNuVWcNJ952MNliPFKWarB0BFHs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
