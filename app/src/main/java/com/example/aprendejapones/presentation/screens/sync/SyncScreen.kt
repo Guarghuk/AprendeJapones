@@ -73,7 +73,7 @@ fun SyncScreen(
         // Progreso
         if (state.isSyncing) {
             LinearProgressIndicator(
-                progress = { state.syncProgress },
+                progress = state.syncProgress,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 16.dp)

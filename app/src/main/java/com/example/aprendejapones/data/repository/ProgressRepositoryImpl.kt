@@ -2,7 +2,7 @@ package com.example.aprendejapones.data.repository
 
 import com.example.aprendejapones.data.local.database.dao.ProgressDao
 import com.example.aprendejapones.data.local.database.dao.UserDao
-import com.example.aprendejapones.data.local.database.entities.ProgressEntity
+import com.example.aprendejapones.data.local.database.entity.ProgressEntity
 import com.example.aprendejapones.domain.repository.CategoryProgress
 import com.example.aprendejapones.domain.repository.ProgressRepository
 import kotlinx.coroutines.flow.Flow
