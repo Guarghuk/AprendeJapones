@@ -139,26 +139,32 @@ class SyncViewModel @Inject constructor(
     }
 
     private suspend fun syncProgress() {
-        // Sync progress data to Firestore
-        // This is a placeholder - implement based on your progress data structure
+        // TODO: Implement progress sync to Firestore
+        // Current implementation fetches data but doesn't upload to Firestore
+        // Future implementation should:
+        // 1. Fetch local progress: val progressList = progressRepository.getAllProgress()
+        // 2. Upload to Firestore: firestoreUserRepository.syncProgressData(userId, progressList)
+        @Suppress("UNUSED_VARIABLE")
         val progressList = progressRepository.getAllProgress()
-        // For now, just verify we can access the data
-        // In a real implementation, you would upload this to Firestore
     }
 
     private suspend fun syncAchievements() {
-        // Sync achievements to Firestore
-        // This is a placeholder - implement based on your achievements data structure
+        // TODO: Implement achievements sync to Firestore
+        // Current implementation fetches data but doesn't upload to Firestore
+        // Future implementation should:
+        // 1. Fetch local achievements: val achievements = achievementRepository.getUserAchievements()
+        // 2. Upload to Firestore: firestoreUserRepository.syncAchievementsData(userId, achievements)
+        @Suppress("UNUSED_VARIABLE")
         val achievements = achievementRepository.getUserAchievements()
-        // For now, just verify we can access the data
-        // In a real implementation, you would upload this to Firestore
     }
 
     private suspend fun syncLessons() {
-        // Sync lessons data to Firestore
-        // This is a placeholder - implement based on your lessons data structure
+        // TODO: Implement lessons sync to Firestore
+        // Current implementation fetches data but doesn't upload to Firestore
+        // Future implementation should:
+        // 1. Fetch local stats: val lessonStats = lessonRepository.getLessonStats()
+        // 2. Upload to Firestore: firestoreUserRepository.syncLessonStats(userId, lessonStats)
+        @Suppress("UNUSED_VARIABLE")
         val lessonStats = lessonRepository.getLessonStats()
-        // For now, just verify we can access the data
-        // In a real implementation, you would upload this to Firestore
     }
 }

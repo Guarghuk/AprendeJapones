@@ -3,9 +3,9 @@ package com.example.aprendejapones.data.repository
 import com.example.aprendejapones.domain.model.FirestoreComment
 import com.example.aprendejapones.domain.model.FirestoreLike
 import com.example.aprendejapones.domain.model.FirestorePost
+import com.example.aprendejapones.domain.model.FirestoreUser
 import com.example.aprendejapones.domain.repository.AuthRepository
 import com.example.aprendejapones.domain.repository.CommunityRepository
-import com.example.aprendejapones.domain.repository.FirestoreUserRepository
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
@@ -21,8 +21,7 @@ import javax.inject.Singleton
 @Singleton
 class FirestoreCommunityRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
-    private val authRepository: AuthRepository,
-    private val firestoreUserRepository: FirestoreUserRepository
+    private val authRepository: AuthRepository
 ) : CommunityRepository {
 
     override fun getPostsFlow(): Flow<List<FirestorePost>> = callbackFlow {
@@ -50,7 +49,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 val userId = authRepository.getCurrentUserId()
                     ?: return@withContext Result.failure(Exception("Not logged in"))
 
-                val user = firestoreUserRepository.getCurrentUserProfile()
+                val user = getUserProfile(userId)
                     ?: return@withContext Result.failure(Exception("User profile not found"))
 
                 val post = FirestorePost(
@@ -123,7 +122,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 val userId = authRepository.getCurrentUserId()
                     ?: return@withContext Result.failure(Exception("Not logged in"))
 
-                val user = firestoreUserRepository.getCurrentUserProfile()
+                val user = getUserProfile(userId)
                     ?: return@withContext Result.failure(Exception("User profile not found"))
 
                 val comment = FirestoreComment(
@@ -221,6 +220,19 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 Result.failure(e)
             }
+        }
+    }
+
+    /**
+     * Helper method to get user profile directly from Firestore
+     * to avoid circular dependency with FirestoreUserRepository
+     */
+    private suspend fun getUserProfile(userId: String): FirestoreUser? {
+        return try {
+            val doc = firestore.collection("users").document(userId).get().await()
+            doc.toObject(FirestoreUser::class.java)
+        } catch (e: Exception) {
+            null
         }
     }
 }

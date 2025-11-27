@@ -97,10 +97,11 @@ class EditProfileViewModel @Inject constructor(
     }
 
     private fun selectPhoto() {
-        // This would typically open a photo picker
-        // For now, just show a toast
+        // TODO: Implement photo picker using Activity Result API
+        // This requires the screen to handle the photo picker result and pass the Uri back to ViewModel
+        // For now, notify user that this feature requires additional setup
         viewModelScope.launch {
-            _effects.emit(EditProfileEffect.ShowToast("Selección de foto no implementada"))
+            _effects.emit(EditProfileEffect.ShowToast("📷 Función en desarrollo - Próximamente"))
         }
     }
 

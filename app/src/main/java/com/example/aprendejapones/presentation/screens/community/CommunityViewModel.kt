@@ -77,9 +77,12 @@ class CommunityViewModel @Inject constructor(
     }
 
     private fun savePost(postId: String) {
-        // TODO: Implement save/bookmark functionality
+        // TODO: Implement save/bookmark functionality with Firestore
+        // Future implementation:
+        // 1. Add postId to user's saved posts collection in Firestore
+        // 2. Update local state to reflect saved status
         viewModelScope.launch {
-            _effects.emit(CommunityEffect.ShowToast("Guardado en favoritos"))
+            _effects.emit(CommunityEffect.ShowToast("📌 Función en desarrollo - Próximamente"))
         }
     }
 
