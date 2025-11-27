@@ -48,4 +48,10 @@ abstract class RepositoryModule {
     abstract fun bindFirestoreCommunityRepository(
         firestoreCommunityRepositoryImpl: FirestoreCommunityRepositoryImpl
     ): CommunityRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFirestoreUserRepository(
+        firestoreUserRepositoryImpl: FirestoreUserRepositoryImpl
+    ): FirestoreUserRepository
 }

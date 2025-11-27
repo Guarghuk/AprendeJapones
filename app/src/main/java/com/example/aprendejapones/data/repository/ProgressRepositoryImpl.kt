@@ -2,7 +2,7 @@ package com.example.aprendejapones.data.repository
 
 import com.example.aprendejapones.data.local.database.dao.ProgressDao
 import com.example.aprendejapones.data.local.database.dao.UserDao
-import com.example.aprendejapones.data.local.database.entity.ProgressEntity
+import com.example.aprendejapones.data.local.database.entities.ProgressEntity
 import com.example.aprendejapones.domain.repository.CategoryProgress
 import com.example.aprendejapones.domain.repository.ProgressRepository
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +28,18 @@ class ProgressRepositoryImpl @Inject constructor(
                     )
                 }
             } ?: emptyList()
+        }
+    }
+
+    override suspend fun getAllProgress(): List<CategoryProgress> {
+        val user = userDao.getCurrentUser() ?: return emptyList()
+        return progressDao.getAllProgress(user.id).map { entity ->
+            CategoryProgress(
+                category = entity.category,
+                progress = entity.progress,
+                itemsLearned = entity.itemsLearned,
+                totalItems = entity.totalItems
+            )
         }
     }
 

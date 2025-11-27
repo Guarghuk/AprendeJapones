@@ -24,13 +24,24 @@ import com.example.aprendejapones.presentation.screens.home.HomeScreen
 import com.example.aprendejapones.presentation.screens.lesson.LessonScreen
 import com.example.aprendejapones.presentation.screens.menu.MenuScreen
 import com.example.aprendejapones.presentation.screens.profile.ProfileScreen
+import com.example.aprendejapones.presentation.screens.profile.UserProfileScreen
+import com.example.aprendejapones.presentation.screens.profile.EditProfileScreen
 import com.example.aprendejapones.presentation.screens.achievements.AchievementsScreen
 import com.example.aprendejapones.presentation.screens.auth.LoginScreen
+import com.example.aprendejapones.presentation.screens.auth.RegisterScreen
 import com.example.aprendejapones.presentation.screens.newpost.NewPostScreen
 import com.example.aprendejapones.presentation.screens.dailygoal.DailyGoalScreen
 import com.example.aprendejapones.presentation.screens.reminders.RemindersScreen
 import com.example.aprendejapones.presentation.screens.stats.StatsScreen
 import com.example.aprendejapones.presentation.screens.sync.SyncScreen
+import com.google.firebase.auth.FirebaseAuth
+
+/**
+ * Helper function to check if user is logged in
+ */
+private fun isUserLoggedIn(): Boolean {
+    return FirebaseAuth.getInstance().currentUser != null
+}
 
 /**
  * Composable principal que configura la navegación de la app con animaciones
@@ -41,7 +52,7 @@ fun KotodamaNavGraph(
     startDestination: String = Screen.Home.route,
     navController: NavHostController = rememberNavController()
 ) {
-    val startDestination = if (isUserLoggedIn()) Screen.Home.route else Screen.Login.route
+    val calculatedStartDestination = if (isUserLoggedIn()) Screen.Home.route else Screen.Login.route
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = currentBackStackEntry?.destination?.route
 
@@ -61,7 +72,7 @@ fun KotodamaNavGraph(
         ) {
             NavHost(
                 navController = navController,
-                startDestination = startDestination,
+                startDestination = calculatedStartDestination,
                 // Animaciones globales por defecto
                 enterTransition = { defaultEnterTransition() },
                 exitTransition = { defaultExitTransition() },
@@ -375,12 +386,12 @@ fun KotodamaNavGraph(
                     StatsScreen(onBack = { navController.popBackStack() })
                 }
 
-                // ============ CONFIGURACIÓN (Placeholders) ============
+                // ============ CONFIGURACIÓN ============
 
                 composable(Screen.EditProfile.route) {
-                    PlaceholderScreen(
-                        title = "Editar Perfil",
-                        onBack = { navController.popBackStack() }
+                    EditProfileScreen(
+                        onBack = { navController.popBackStack() },
+                        onSaveSuccess = { navController.popBackStack() }
                     )
                 }
 

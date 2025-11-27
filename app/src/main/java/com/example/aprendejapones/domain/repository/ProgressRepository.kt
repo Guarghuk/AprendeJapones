@@ -17,6 +17,11 @@ interface ProgressRepository {
     fun getUserProgressFlow(): Flow<List<CategoryProgress>>
 
     /**
+     * Get all progress (one-time)
+     */
+    suspend fun getAllProgress(): List<CategoryProgress>
+
+    /**
      * Get progress for specific category
      */
     suspend fun getProgressByCategory(category: String): CategoryProgress?

@@ -1,0 +1,50 @@
+package com.example.aprendejapones.domain.repository
+
+import com.example.aprendejapones.domain.model.FirestoreComment
+import com.example.aprendejapones.domain.model.FirestorePost
+import kotlinx.coroutines.flow.Flow
+
+/**
+ * Repository interface for community features (posts, comments, likes)
+ */
+interface CommunityRepository {
+    /**
+     * Get real-time stream of posts
+     */
+    fun getPostsFlow(): Flow<List<FirestorePost>>
+
+    /**
+     * Create a new post
+     */
+    suspend fun createPost(content: String, category: String): Result<Unit>
+
+    /**
+     * Like a post
+     */
+    suspend fun likePost(postId: String): Result<Unit>
+
+    /**
+     * Unlike a post
+     */
+    suspend fun unlikePost(postId: String): Result<Unit>
+
+    /**
+     * Add a comment to a post
+     */
+    suspend fun addComment(postId: String, content: String): Result<Unit>
+
+    /**
+     * Get comments for a post
+     */
+    fun getCommentsFlow(postId: String): Flow<List<FirestoreComment>>
+
+    /**
+     * Check if user has liked a post
+     */
+    suspend fun hasUserLikedPost(postId: String): Boolean
+
+    /**
+     * Delete a post (only owner can delete)
+     */
+    suspend fun deletePost(postId: String): Result<Unit>
+}
