@@ -50,7 +50,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     ?: return@withContext Result.failure(Exception("Not logged in"))
 
                 val user = getUserProfile(userId)
-                    ?: return@withContext Result.failure(Exception("User profile not found for userId: $userId"))
+                    ?: return@withContext Result.failure(Exception("User profile not found"))
 
                 val post = FirestorePost(
                     authorId = userId,
@@ -62,8 +62,12 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 )
 
                 firestore.collection("posts").add(post).await()
+                
+                android.util.Log.d("FirestoreCommunity", "Post created successfully: $content")
+                
                 Result.success(Unit)
             } catch (e: Exception) {
+                android.util.Log.e("FirestoreCommunity", "Error creating post", e)
                 Result.failure(e)
             }
         }
