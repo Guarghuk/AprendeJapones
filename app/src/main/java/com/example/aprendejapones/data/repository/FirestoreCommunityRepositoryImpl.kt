@@ -50,7 +50,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     ?: return@withContext Result.failure(Exception("Not logged in"))
 
                 val user = getUserProfile(userId)
-                    ?: return@withContext Result.failure(Exception("User profile not found"))
+                    ?: return@withContext Result.failure(Exception("User profile not found for userId: $userId"))
 
                 val post = FirestorePost(
                     authorId = userId,
@@ -123,7 +123,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     ?: return@withContext Result.failure(Exception("Not logged in"))
 
                 val user = getUserProfile(userId)
-                    ?: return@withContext Result.failure(Exception("User profile not found"))
+                    ?: return@withContext Result.failure(Exception("User profile not found for userId: $userId"))
 
                 val comment = FirestoreComment(
                     postId = postId,

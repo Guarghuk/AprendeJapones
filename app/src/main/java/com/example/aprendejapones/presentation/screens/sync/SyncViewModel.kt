@@ -2,7 +2,7 @@ package com.example.aprendejapones.presentation.screens.sync
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.aprendejapones.domain.model.FirestoreUser
+import com.example.aprendejapones.data.mapper.UserMapper.toFirestoreUser
 import com.example.aprendejapones.domain.repository.AchievementRepository
 import com.example.aprendejapones.domain.repository.FirestoreUserRepository
 import com.example.aprendejapones.domain.repository.LessonRepository
@@ -126,16 +126,7 @@ class SyncViewModel @Inject constructor(
 
     private suspend fun syncUser() {
         val localUser = userRepository.getCurrentUser() ?: return
-        val firestoreUser = FirestoreUser(
-            id = localUser.id,
-            username = localUser.username,
-            rank = localUser.rank,
-            level = localUser.level,
-            xp = localUser.currentXP,
-            streak = localUser.streak,
-            drops = localUser.drops
-        )
-        firestoreUserRepository.updateUserProfile(firestoreUser)
+        firestoreUserRepository.updateUserProfile(localUser.toFirestoreUser())
     }
 
     private suspend fun syncProgress() {
