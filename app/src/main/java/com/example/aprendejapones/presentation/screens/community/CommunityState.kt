@@ -1,12 +1,12 @@
 package com.example.aprendejapones.presentation.screens.community
 
-import com.example.aprendejapones.utils.Post
+import com.example.aprendejapones.domain.model.FirestorePost
 
 /**
  * Estado de la pantalla Community
  */
 data class CommunityState(
-    val posts: List<Post> = emptyList(),
+    val posts: List<FirestorePost> = emptyList(),
     val isLoading: Boolean = true,
     val error: String? = null
 )
@@ -17,7 +17,7 @@ data class CommunityState(
 sealed class CommunityEvent {
     object LoadPosts : CommunityEvent()
     object RefreshPosts : CommunityEvent()
-    object CreateNewPost : CommunityEvent()
+    data class CreatePost(val content: String, val category: String) : CommunityEvent()
     data class LikePost(val postId: String) : CommunityEvent()
     data class SavePost(val postId: String) : CommunityEvent()
     object DismissError : CommunityEvent()

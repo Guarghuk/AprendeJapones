@@ -31,6 +31,18 @@ class ProgressRepositoryImpl @Inject constructor(
         }
     }
 
+    override suspend fun getAllProgress(): List<CategoryProgress> {
+        val user = userDao.getCurrentUser() ?: return emptyList()
+        return progressDao.getAllProgress(user.id).map { entity ->
+            CategoryProgress(
+                category = entity.category,
+                progress = entity.progress,
+                itemsLearned = entity.itemsLearned,
+                totalItems = entity.totalItems
+            )
+        }
+    }
+
     override suspend fun getProgressByCategory(category: String): CategoryProgress? {
         val user = userDao.getCurrentUser() ?: return null
         val entity = progressDao.getProgressByCategory(user.id, category) ?: return null
