@@ -2,6 +2,7 @@ package com.example.aprendejapones.presentation.screens.auth
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.aprendejapones.data.local.preferences.PreferencesManager
 import com.example.aprendejapones.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -16,7 +17,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AuthViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AuthState())
@@ -124,6 +126,7 @@ class AuthViewModel @Inject constructor(
             result.fold(
                 onSuccess = {
                     _state.update { it.copy(isLoading = false) }
+                    preferencesManager.saveUserName(_state.value.username)
                     _effects.emit(AuthEffect.RegisterSuccess)
                 },
                 onFailure = { error ->

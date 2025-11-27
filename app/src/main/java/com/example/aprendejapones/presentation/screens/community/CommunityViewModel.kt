@@ -52,11 +52,15 @@ class CommunityViewModel @Inject constructor(
 
     private fun createPost(content: String, category: String) {
         viewModelScope.launch {
+            android.util.Log.d("CommunityViewModel", "Creating post: content=$content, category=$category")
+            
             val result = communityRepository.createPost(content, category)
             result.onFailure { error ->
+                android.util.Log.e("CommunityViewModel", "Failed to create post", error)
                 _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
             }
             result.onSuccess {
+                android.util.Log.d("CommunityViewModel", "Post created successfully")
                 _effects.emit(CommunityEffect.ShowToast("Post creado exitosamente"))
             }
         }

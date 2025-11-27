@@ -96,7 +96,7 @@ fun KotodamaNavGraph(
                 composable(Screen.Register.route) {
                     RegisterScreen(
                         onRegisterSuccess = {
-                            navController.navigate(Screen.Home.route) {
+                            navController.navigate(Screen.Onboarding.route) {
                                 popUpTo(Screen.Login.route) { inclusive = true }
                             }
                         },
