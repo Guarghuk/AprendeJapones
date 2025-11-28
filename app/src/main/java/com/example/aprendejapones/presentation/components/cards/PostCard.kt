@@ -15,9 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.aprendejapones.domain.model.FirestorePost
 import com.example.aprendejapones.presentation.theme.*
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import com.example.aprendejapones.utils.TimeUtils
 
 /**
  * Card de publicación en comunidad
@@ -74,7 +72,7 @@ fun PostCard(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            text = formatTimestamp(post.createdAt),
+                            text = TimeUtils.formatRelativeTime(post.createdAt),
                             fontSize = 11.sp,
                             color = TextTertiary
                         )
@@ -203,24 +201,6 @@ fun PostCard(
                     )
                 }
             }
-        }
-    }
-}
-
-/**
- * Format timestamp to readable string
- */
-private fun formatTimestamp(timestamp: Long): String {
-    val now = System.currentTimeMillis()
-    val diff = now - timestamp
-    
-    return when {
-        diff < 60000 -> "Hace un momento"
-        diff < 3600000 -> "Hace ${diff / 60000} min"
-        diff < 86400000 -> "Hace ${diff / 3600000}h"
-        else -> {
-            val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            dateFormat.format(Date(timestamp))
         }
     }
 }

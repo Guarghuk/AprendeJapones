@@ -272,13 +272,23 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
 
                 val savedPostId = "${userId}_${postId}"
 
+                // Check if the save record exists before deleting
+                val savedPostDoc = firestore.collection("saved_posts").document(savedPostId).get().await()
+                if (!savedPostDoc.exists()) {
+                    return@withContext Result.success(Unit) // Already unsaved
+                }
+
                 // Delete saved post record
                 firestore.collection("saved_posts").document(savedPostId).delete().await()
 
-                // Decrement saves counter on post
-                firestore.collection("posts").document(postId)
-                    .update("savesCount", FieldValue.increment(-1))
-                    .await()
+                // Decrement saves counter on post (only if current count > 0)
+                val postDoc = firestore.collection("posts").document(postId).get().await()
+                val currentSavesCount = postDoc.getLong("savesCount") ?: 0
+                if (currentSavesCount > 0) {
+                    firestore.collection("posts").document(postId)
+                        .update("savesCount", FieldValue.increment(-1))
+                        .await()
+                }
 
                 Result.success(Unit)
             } catch (e: Exception) {
@@ -324,23 +334,42 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     return@addSnapshotListener
                 }
 
-                // Fetch the actual posts
-                firestore.collection("posts")
-                    .whereIn("__name__", postIds.take(10)) // Firestore limit
-                    .get()
-                    .addOnSuccessListener { postsSnapshot ->
-                        val posts = postsSnapshot.documents.mapNotNull {
-                            it.toObject(FirestorePost::class.java)?.copy(id = it.id)
+                // Fetch posts in batches of 10 (Firestore whereIn limit)
+                val allPosts = mutableListOf<FirestorePost>()
+                val batches = postIds.chunked(10)
+                var completedBatches = 0
+
+                for (batch in batches) {
+                    firestore.collection("posts")
+                        .whereIn("__name__", batch)
+                        .get()
+                        .addOnSuccessListener { postsSnapshot ->
+                            val posts = postsSnapshot.documents.mapNotNull {
+                                it.toObject(FirestorePost::class.java)?.copy(id = it.id)
+                            }
+                            allPosts.addAll(posts)
+                            completedBatches++
+
+                            // When all batches are done, sort and send
+                            if (completedBatches == batches.size) {
+                                // Sort by saved order (original postIds order)
+                                val sortedPosts = postIds.mapNotNull { postId ->
+                                    allPosts.find { it.id == postId }
+                                }
+                                trySend(sortedPosts)
+                            }
                         }
-                        // Sort by saved order
-                        val sortedPosts = postIds.mapNotNull { postId ->
-                            posts.find { it.id == postId }
+                        .addOnFailureListener {
+                            completedBatches++
+                            if (completedBatches == batches.size) {
+                                // Sort by saved order even with partial results
+                                val sortedPosts = postIds.mapNotNull { postId ->
+                                    allPosts.find { it.id == postId }
+                                }
+                                trySend(sortedPosts)
+                            }
                         }
-                        trySend(sortedPosts)
-                    }
-                    .addOnFailureListener {
-                        trySend(emptyList())
-                    }
+                }
             }
 
         awaitClose { listener.remove() }
