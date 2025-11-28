@@ -47,4 +47,12 @@ interface CommunityRepository {
      * Delete a post (only owner can delete)
      */
     suspend fun deletePost(postId: String): Result<Unit>
+
+    suspend fun savePost(postId: String): Result<Unit>
+    suspend fun unsavePost(postId: String): Result<Unit>
+    suspend fun hasUserSavedPost(postId: String): Boolean
+    fun getUserLikedPostsFlow(userId: String): Flow<List<String>>
+    fun getUserSavedPostsFlow(userId: String): Flow<List<String>>
+    suspend fun getPost(postId: String): FirestorePost?
+    fun getUserPostsFlow(userId: String): Flow<List<FirestorePost>>
 }

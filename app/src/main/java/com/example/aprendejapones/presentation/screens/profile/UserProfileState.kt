@@ -1,5 +1,6 @@
 package com.example.aprendejapones.presentation.screens.profile
 
+import com.example.aprendejapones.domain.model.FirestorePost
 import com.example.aprendejapones.domain.model.FirestoreUser
 
 /**
@@ -8,5 +9,6 @@ import com.example.aprendejapones.domain.model.FirestoreUser
 data class UserProfileState(
     val user: FirestoreUser? = null,
     val isLoading: Boolean = true,
-    val error: String? = null
+    val error: String? = null,
+    val userPosts: List<FirestorePost> = emptyList(),
 )
