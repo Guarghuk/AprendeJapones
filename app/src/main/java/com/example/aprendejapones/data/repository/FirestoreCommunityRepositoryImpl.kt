@@ -427,6 +427,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
             .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
+                    android.util.Log.e("FirestoreCommunity", "Error loading liked post IDs", error)
                     trySend(emptySet())
                     return@addSnapshotListener
                 }
