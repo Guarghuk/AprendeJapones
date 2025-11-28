@@ -75,7 +75,7 @@ data class FirestorePost(
     val authorName: String = "",
     val content: String = "",
     val category: String = "General",
-    val createdAt: Long = System.currentTimeMillis(),
+    val createdAt: Long = System. currentTimeMillis(),
     val likes: List<String> = emptyList(), // Lista de user IDs que han dado like
     val comments: List<String> = emptyList(), // Lista de comment IDs
     // Este campo no se almacena en Firestore, se calcula en el cliente
