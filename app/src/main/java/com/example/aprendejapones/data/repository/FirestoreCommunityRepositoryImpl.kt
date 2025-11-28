@@ -478,17 +478,17 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
         }
     }
     override fun getUserPostsFlow(userId: String): Flow<List<FirestorePost>> = callbackFlow {
-        val listener = firestore. collection("posts")
+        val listener = firestore.collection("posts")
             .whereEqualTo("authorId", userId)
-            .orderBy("createdAt", Query.Direction. DESCENDING)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
                     return@addSnapshotListener
                 }
 
-                val posts = snapshot?. documents?.mapNotNull {
-                    it.toObject(FirestorePost::class.java)?. copy(id = it.id)
+                val posts = snapshot?.documents?.mapNotNull {
+                    it.toObject(FirestorePost::class.java)?.copy(id = it.id)
                 } ?: emptyList()
 
                 trySend(posts)
