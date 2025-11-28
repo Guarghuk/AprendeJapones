@@ -2,15 +2,15 @@ package com.example.aprendejapones.presentation.navigation
 
 import com.example.aprendejapones.presentation.screens.onboarding.OnboardingScreen
 import androidx.compose.animation.*
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.animation. core.tween
+import androidx. compose.foundation.layout.Box
+import androidx.compose.foundation. layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
+import androidx.compose.material3. Scaffold
+import androidx.compose.runtime. Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui. Modifier
+import androidx.compose.ui. unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -18,33 +18,26 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
+import androidx.navigation. navArgument
 import com.example.aprendejapones.presentation.screens.community.CommunityScreen
 import com.example.aprendejapones.presentation.screens.home.HomeScreen
 import com.example.aprendejapones.presentation.screens.lesson.LessonScreen
 import com.example.aprendejapones.presentation.screens.menu.MenuScreen
 import com.example.aprendejapones.presentation.screens.profile.ProfileScreen
 import com.example.aprendejapones.presentation.screens.profile.UserProfileScreen
-import com.example.aprendejapones.presentation.screens.profile.EditProfileScreen
-import com.example.aprendejapones.presentation.screens.achievements.AchievementsScreen
+import com.example. aprendejapones.presentation. screens.profile.EditProfileScreen
+import com.example. aprendejapones.presentation. screens.achievements.AchievementsScreen
 import com.example.aprendejapones.presentation.screens.auth.LoginScreen
 import com.example.aprendejapones.presentation.screens.auth.RegisterScreen
 import com.example.aprendejapones.presentation.screens.newpost.NewPostScreen
-import com.example.aprendejapones.presentation.screens.dailygoal.DailyGoalScreen
-import com.example.aprendejapones.presentation.screens.reminders.RemindersScreen
+import com. example.aprendejapones. presentation.screens.dailygoal.DailyGoalScreen
+import com.example.aprendejapones.presentation.screens. reminders.RemindersScreen
 import com.example.aprendejapones.presentation.screens.stats.StatsScreen
-import com.example.aprendejapones.presentation.screens.sync.SyncScreen
-import com.google.firebase.auth.FirebaseAuth
-
-/**
- * Helper function to check if user is logged in
- */
-private fun isUserLoggedIn(): Boolean {
-    return FirebaseAuth.getInstance().currentUser != null
-}
+import com. example.aprendejapones. presentation.screens.sync.SyncScreen
 
 /**
  * Composable principal que configura la navegación de la app con animaciones
+ * El startDestination es determinado por MainActivity basándose en preferencias
  */
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -52,9 +45,11 @@ fun KotodamaNavGraph(
     startDestination: String = Screen.Home.route,
     navController: NavHostController = rememberNavController()
 ) {
-    val calculatedStartDestination = if (isUserLoggedIn()) Screen.Home.route else Screen.Login.route
+    // 🔍 Log para debugging
+    android.util.Log.d("NavGraph", "🚀 Starting with destination: $startDestination")
+
     val currentBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route
+    val currentRoute = currentBackStackEntry?.destination?. route
 
     // Determinar si mostrar bottom navigation
     val showBottomNav = currentRoute in bottomNavScreens
@@ -72,13 +67,14 @@ fun KotodamaNavGraph(
         ) {
             NavHost(
                 navController = navController,
-                startDestination = calculatedStartDestination,
-                // Animaciones globales por defecto
+                startDestination = startDestination,
                 enterTransition = { defaultEnterTransition() },
                 exitTransition = { defaultExitTransition() },
                 popEnterTransition = { defaultPopEnterTransition() },
                 popExitTransition = { defaultPopExitTransition() }
             ) {
+                // ============ AUTENTICACIÓN ============
+
                 composable(Screen.Login.route) {
                     LoginScreen(
                         onLoginSuccess = {
@@ -87,42 +83,25 @@ fun KotodamaNavGraph(
                             }
                         },
                         onNavigateToRegister = {
-                            navController.navigate(Screen.Register.route)
+                            navController.navigate(Screen. Register.route)
                         }
                     )
                 }
 
-                // ✅ Register
                 composable(Screen.Register.route) {
                     RegisterScreen(
                         onRegisterSuccess = {
-                            navController.navigate(Screen.Onboarding.route) {
+                            navController. navigate(Screen. Onboarding.route) {  // ✅ SIN ESPACIO
                                 popUpTo(Screen.Login.route) { inclusive = true }
                             }
                         },
                         onNavigateToLogin = {
-                            navController.popBackStack()
+                            navController. popBackStack()
                         }
                     )
                 }
 
-                // ✅ User Profile
-                composable(
-                    route = Screen.UserProfile.route,
-                    arguments = listOf(navArgument("userId") { type = NavType.StringType })
-                ) { backStackEntry ->
-                    val userId = backStackEntry.arguments?.getString("userId") ?: ""
-                    UserProfileScreen(
-                        userId = userId,
-                        onBack = { navController.popBackStack() }
-                    )
-                }
-
-                // ✅ Sync
-                composable(Screen.Sync.route) {
-                    SyncScreen(onBack = { navController.popBackStack() })
-                }
-                // ============ ONBOARDING (Primera pantalla) ============
+                // ============ ONBOARDING ============
 
                 composable(
                     route = Screen.Onboarding.route,
@@ -131,7 +110,7 @@ fun KotodamaNavGraph(
                 ) {
                     OnboardingScreen(
                         onComplete = {
-                            navController.navigate(Screen.Home.route) {
+                            navController.navigate(Screen.Login.route) {
                                 popUpTo(Screen.Onboarding.route) { inclusive = true }
                                 launchSingleTop = true
                             }
@@ -139,7 +118,8 @@ fun KotodamaNavGraph(
                     )
                 }
 
-                // Home Screen - Sin animación entre tabs del bottom nav
+                // ============ PANTALLAS PRINCIPALES ============
+
                 composable(
                     route = Screen.Home.route,
                     enterTransition = { fadeIn(animationSpec = tween(200)) },
@@ -152,7 +132,6 @@ fun KotodamaNavGraph(
                     )
                 }
 
-                // Profile Screen - Sin animación entre tabs
                 composable(
                     route = Screen.Profile.route,
                     enterTransition = { fadeIn(animationSpec = tween(300)) },
@@ -163,12 +142,11 @@ fun KotodamaNavGraph(
                             navController.navigate(Screen.Achievements.route)
                         },
                         onNavigateToStats = {
-                            navController.navigate(Screen.Stats.route)
+                            navController. navigate(Screen.Stats.route)
                         }
                     )
                 }
 
-                // Community Screen - Sin animación entre tabs
                 composable(
                     route = Screen.Community.route,
                     enterTransition = { fadeIn(animationSpec = tween(300)) },
@@ -176,12 +154,11 @@ fun KotodamaNavGraph(
                 ) {
                     CommunityScreen(
                         onNavigateToNewPost = {
-                            navController.navigate(Screen.NewPost.route)
+                            navController.navigate(Screen.NewPost. route)
                         }
                     )
                 }
 
-                // Menu Screen - Sin animación entre tabs
                 composable(
                     route = Screen.Menu.route,
                     enterTransition = { fadeIn(animationSpec = tween(300)) },
@@ -191,7 +168,7 @@ fun KotodamaNavGraph(
                         onNavigateToScreen = { screenRoute ->
                             when (screenRoute) {
                                 "goal" -> navController.navigate(Screen.DailyGoal.route)
-                                "reminders" -> navController.navigate(Screen.Reminders.route)
+                                "reminders" -> navController.navigate(Screen. Reminders.route)
                                 "stats" -> navController.navigate(Screen.Stats.route)
                                 "editProfile" -> navController.navigate(Screen.EditProfile.route)
                                 "privacy" -> navController.navigate(Screen.Privacy.route)
@@ -203,17 +180,31 @@ fun KotodamaNavGraph(
                     )
                 }
 
-                // ============ PANTALLAS SECUNDARIAS (Con animaciones) ============
+                // ============ PERFILES ============
 
-                // Lesson Screen - Slide desde la derecha
+                composable(
+                    route = Screen.UserProfile.route,
+                    arguments = listOf(navArgument("userId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val userId = backStackEntry.arguments?. getString("userId") ?: ""
+                    UserProfileScreen(
+                        userId = userId,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(Screen. Sync.route) {
+                    SyncScreen(onBack = { navController.popBackStack() })
+                }
+
+                // ============ PANTALLAS SECUNDARIAS ============
+
                 composable(
                     route = Screen.Lesson.route,
-                    arguments = listOf(
-                        navArgument("functionName") { type = NavType.StringType }
-                    ),
+                    arguments = listOf(navArgument("functionName") { type = NavType.StringType }),
                     enterTransition = {
                         slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                            towards = AnimatedContentTransitionScope. SlideDirection.Left,
                             animationSpec = tween(400)
                         )
                     },
@@ -243,12 +234,11 @@ fun KotodamaNavGraph(
                     )
                 }
 
-                // Achievements Screen - Slide desde abajo
                 composable(
-                    route = Screen.Achievements.route,
+                    route = Screen. Achievements.route,
                     enterTransition = {
                         slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                            towards = AnimatedContentTransitionScope.SlideDirection. Up,
                             animationSpec = tween(400)
                         ) + fadeIn(animationSpec = tween(400))
                     },
@@ -274,30 +264,29 @@ fun KotodamaNavGraph(
                     AchievementsScreen(onBack = { navController.popBackStack() })
                 }
 
-                // New Post Screen - Slide desde abajo
                 composable(
                     route = Screen.NewPost.route,
                     enterTransition = {
                         slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                            towards = AnimatedContentTransitionScope. SlideDirection.Up,
                             animationSpec = tween(500)
                         )
                     },
                     exitTransition = {
                         slideOutOfContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                            towards = AnimatedContentTransitionScope. SlideDirection.Up,
                             animationSpec = tween(500)
                         )
                     },
                     popEnterTransition = {
                         slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                            towards = AnimatedContentTransitionScope. SlideDirection.Down,
                             animationSpec = tween(500)
                         )
                     },
                     popExitTransition = {
                         slideOutOfContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                            towards = AnimatedContentTransitionScope. SlideDirection.Down,
                             animationSpec = tween(500)
                         )
                     }
@@ -305,40 +294,30 @@ fun KotodamaNavGraph(
                     NewPostScreen(onBack = { navController.popBackStack() })
                 }
 
-                // Daily Goal Screen - Scale y Fade
                 composable(
-                    route = Screen.DailyGoal.route,
+                    route = Screen. DailyGoal.route,
                     enterTransition = {
-                        scaleIn(
-                            initialScale = 0.9f,
-                            animationSpec = tween(400)
-                        ) + fadeIn(animationSpec = tween(400))
+                        scaleIn(initialScale = 0.9f, animationSpec = tween(400)) +
+                                fadeIn(animationSpec = tween(400))
                     },
                     exitTransition = {
-                        scaleOut(
-                            targetScale = 0.9f,
-                            animationSpec = tween(400)
-                        ) + fadeOut(animationSpec = tween(400))
+                        scaleOut(targetScale = 0.9f, animationSpec = tween(400)) +
+                                fadeOut(animationSpec = tween(400))
                     },
                     popEnterTransition = {
-                        scaleIn(
-                            initialScale = 0.9f,
-                            animationSpec = tween(400)
-                        ) + fadeIn(animationSpec = tween(400))
+                        scaleIn(initialScale = 0.9f, animationSpec = tween(400)) +
+                                fadeIn(animationSpec = tween(400))
                     },
                     popExitTransition = {
-                        scaleOut(
-                            targetScale = 0.9f,
-                            animationSpec = tween(400)
-                        ) + fadeOut(animationSpec = tween(400))
+                        scaleOut(targetScale = 0.9f, animationSpec = tween(400)) +
+                                fadeOut(animationSpec = tween(400))
                     }
                 ) {
                     DailyGoalScreen(onBack = { navController.popBackStack() })
                 }
 
-                // Reminders Screen - Slide desde la derecha
                 composable(
-                    route = Screen.Reminders.route,
+                    route = Screen. Reminders.route,
                     enterTransition = {
                         slideIntoContainer(
                             towards = AnimatedContentTransitionScope.SlideDirection.Left,
@@ -355,32 +334,23 @@ fun KotodamaNavGraph(
                     RemindersScreen(onBack = { navController.popBackStack() })
                 }
 
-                // Stats Screen - Fade con Scale
                 composable(
                     route = Screen.Stats.route,
                     enterTransition = {
-                        fadeIn(animationSpec = tween(500)) + scaleIn(
-                            initialScale = 0.95f,
-                            animationSpec = tween(500)
-                        )
+                        fadeIn(animationSpec = tween(500)) +
+                                scaleIn(initialScale = 0.95f, animationSpec = tween(500))
                     },
                     exitTransition = {
-                        fadeOut(animationSpec = tween(500)) + scaleOut(
-                            targetScale = 0.95f,
-                            animationSpec = tween(500)
-                        )
+                        fadeOut(animationSpec = tween(500)) +
+                                scaleOut(targetScale = 0.95f, animationSpec = tween(500))
                     },
                     popEnterTransition = {
-                        fadeIn(animationSpec = tween(500)) + scaleIn(
-                            initialScale = 0.95f,
-                            animationSpec = tween(500)
-                        )
+                        fadeIn(animationSpec = tween(500)) +
+                                scaleIn(initialScale = 0.95f, animationSpec = tween(500))
                     },
                     popExitTransition = {
-                        fadeOut(animationSpec = tween(500)) + scaleOut(
-                            targetScale = 0.95f,
-                            animationSpec = tween(500)
-                        )
+                        fadeOut(animationSpec = tween(500)) +
+                                scaleOut(targetScale = 0.95f, animationSpec = tween(500))
                     }
                 ) {
                     StatsScreen(onBack = { navController.popBackStack() })
@@ -395,7 +365,7 @@ fun KotodamaNavGraph(
                     )
                 }
 
-                composable(Screen.Privacy.route) {
+                composable(Screen. Privacy.route) {
                     PlaceholderScreen(
                         title = "Privacidad",
                         onBack = { navController.popBackStack() }
@@ -409,10 +379,10 @@ fun KotodamaNavGraph(
                     )
                 }
 
-                composable(Screen.Contact.route) {
+                composable(Screen.Contact. route) {
                     PlaceholderScreen(
                         title = "Contacto",
-                        onBack = { navController.popBackStack() }
+                        onBack = { navController. popBackStack() }
                     )
                 }
 
@@ -430,7 +400,7 @@ fun KotodamaNavGraph(
 // ============ FUNCIONES DE ANIMACIÓN POR DEFECTO ============
 
 @OptIn(ExperimentalAnimationApi::class)
-private fun AnimatedContentTransitionScope<*>.defaultEnterTransition(): EnterTransition {
+private fun AnimatedContentTransitionScope<*>. defaultEnterTransition(): EnterTransition {
     return slideIntoContainer(
         towards = AnimatedContentTransitionScope.SlideDirection.Left,
         animationSpec = tween(400)
@@ -440,7 +410,7 @@ private fun AnimatedContentTransitionScope<*>.defaultEnterTransition(): EnterTra
 @OptIn(ExperimentalAnimationApi::class)
 private fun AnimatedContentTransitionScope<*>.defaultExitTransition(): ExitTransition {
     return slideOutOfContainer(
-        towards = AnimatedContentTransitionScope.SlideDirection.Left,
+        towards = AnimatedContentTransitionScope. SlideDirection.Left,
         animationSpec = tween(400)
     ) + fadeOut(animationSpec = tween(400))
 }
@@ -448,7 +418,7 @@ private fun AnimatedContentTransitionScope<*>.defaultExitTransition(): ExitTrans
 @OptIn(ExperimentalAnimationApi::class)
 private fun AnimatedContentTransitionScope<*>.defaultPopEnterTransition(): EnterTransition {
     return slideIntoContainer(
-        towards = AnimatedContentTransitionScope.SlideDirection.Right,
+        towards = AnimatedContentTransitionScope. SlideDirection.Right,
         animationSpec = tween(400)
     ) + fadeIn(animationSpec = tween(400))
 }
@@ -473,14 +443,14 @@ private fun PlaceholderScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
-        horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-        verticalArrangement = androidx.compose.foundation.layout.Arrangement.Center
+        horizontalAlignment = androidx.compose.ui. Alignment.CenterHorizontally,
+        verticalArrangement = androidx.compose.foundation.layout. Arrangement.Center
     ) {
-        androidx.compose.material3.Text(
+        androidx. compose.material3.Text(
             text = "🚧",
             fontSize = 64.sp
         )
-        androidx.compose.material3.Text(
+        androidx.compose. material3.Text(
             text = title,
             fontSize = 24.sp,
             fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,

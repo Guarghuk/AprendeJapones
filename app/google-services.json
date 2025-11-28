@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:115013265410:android:8eb148a0e7e7d7ae39df1b",
+        "mobilesdk_app_id": "1:115013265410:android:3a4db50d60a4a50c39df1b",
         "android_client_info": {
-          "package_name": "com.example.AprendeJapones"
+          "package_name": "com.example.aprendejapones"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "115013265410-loapk8ksle0l5m35v4ieks816euhamhh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAe17ZBbNuVWcNJ952MNliPFKWarB0BFHs"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "115013265410-loapk8ksle0l5m35v4ieks816euhamhh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

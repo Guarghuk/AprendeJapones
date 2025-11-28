@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.example.aprendejapones"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.aprendejapones"
@@ -106,6 +106,7 @@ dependencies {
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 
+
     // UUID
     implementation("com.benasher44:uuid:0.8.2")
     // ✅ WorkManager con Hilt
@@ -133,4 +134,10 @@ dependencies {
 
     //firebase analytics
     implementation("com.google.firebase:firebase-analytics")
+
+    // Material 3 UI
+    implementation("androidx.compose.material3:material3:1.3.0")
+    // Material Icons (filled, outlined, rounded, etc.)
+    implementation("androidx.compose.material:material-icons-core:1.7.5")
+    implementation("androidx.compose.material:material-icons-extended:1.7.5")
 }
