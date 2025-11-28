@@ -38,7 +38,7 @@ class CommunityViewModel @Inject constructor(
                 }
                 .collect { posts ->
                     android.util.Log.d("CommunityViewModel", "Loaded ${posts.size} posts")
-                    _state.update { it. copy(posts = posts, isLoading = false, isRefreshing = false) }
+                    _state.update { it.copy(posts = posts, isLoading = false, isRefreshing = false) }
                 }
         }
 
@@ -61,29 +61,6 @@ class CommunityViewModel @Inject constructor(
         }
     }
 
-    private fun loadUserInteractions() {
-        viewModelScope.launch {
-            val userId = authRepository.getCurrentUserId()
-            if (userId != null) {
-                // Load liked posts
-                launch {
-                    communityRepository. getUserLikedPostsFlow(userId)
-                        .collect { likedIds ->
-                            _state.update { it.copy(likedPostIds = likedIds. toSet()) }
-                        }
-                }
-
-                // Load saved posts
-                launch {
-                    communityRepository.getUserSavedPostsFlow(userId)
-                        .collect { savedIds ->
-                            _state.update { it.copy(savedPostIds = savedIds.toSet()) }
-                        }
-                }
-            }
-        }
-    }
-
     fun onEvent(event: CommunityEvent) {
         when (event) {
             is CommunityEvent.LoadPosts -> { /* Posts are loaded automatically via Flow */ }
@@ -93,10 +70,6 @@ class CommunityViewModel @Inject constructor(
             is CommunityEvent.UnsavePost -> unsavePost(event.postId)
             is CommunityEvent.ToggleSavePost -> toggleSavePost(event.postId)
             is CommunityEvent.RefreshPosts -> refreshPosts()
-            is CommunityEvent.CreatePost -> createPost(event.content, event.category)
-            is CommunityEvent. LikePost -> toggleLike(event.postId)
-            is CommunityEvent. SavePost -> toggleSave(event.postId)
-            is CommunityEvent. FilterByCategory -> filterByCategory(event.category)
             is CommunityEvent.DismissError -> dismissError()
             is CommunityEvent.SelectPost -> selectPost(event.post)
             is CommunityEvent.ClosePostDetail -> closePostDetail()
@@ -108,7 +81,6 @@ class CommunityViewModel @Inject constructor(
 
     private fun refreshPosts() {
         _state.update { it.copy(isRefreshing = true) }
-        loadPosts()
     }
 
     private fun createPost(content: String, category: String) {
@@ -117,17 +89,17 @@ class CommunityViewModel @Inject constructor(
 
             val result = communityRepository.createPost(content, category)
             result.onFailure { error ->
-                android. util.Log.e("CommunityViewModel", "Failed to create post", error)
-                _effects.emit(CommunityEffect. ShowToast("Error: ${error.message}"))
+                android.util.Log.e("CommunityViewModel", "Failed to create post", error)
+                _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
             }
             result.onSuccess {
-                android.util.Log. d("CommunityViewModel", "Post created successfully")
-                _effects. emit(CommunityEffect.ShowToast("Post creado exitosamente"))
+                android.util.Log.d("CommunityViewModel", "Post created successfully")
+                _effects.emit(CommunityEffect.ShowToast("Post creado exitosamente"))
             }
         }
     }
 
-    private fun toggleLike(postId: String) {
+    private fun likePost(postId: String) {
         viewModelScope.launch {
             val isLiked = postId in _state.value.likedPostIds
 
@@ -144,10 +116,6 @@ class CommunityViewModel @Inject constructor(
                 _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
             }
         }
-    }
-
-    private fun refreshPosts() {
-        // Posts are already refreshed automatically via Flow
     }
 
     private fun savePost(postId: String) {

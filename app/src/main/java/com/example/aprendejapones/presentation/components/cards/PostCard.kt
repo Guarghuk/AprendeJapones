@@ -2,21 +2,15 @@ package com.example.aprendejapones.presentation.components.cards
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation. clickable
-import androidx.compose. foundation.layout.*
-import androidx.compose.foundation. shape.CircleShape
-import androidx.compose. foundation.shape.RoundedCornerShape
-import androidx.compose. material. icons.Icons
-import androidx.compose.material.icons.filled. Bookmark
-import androidx.compose.material. icons.filled.BookmarkBorder
-import androidx.compose.material. icons.filled.ChatBubbleOutline
-import androidx.compose. material.icons.filled. Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose. material3.*
-import androidx.compose.runtime. Composable
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,6 +24,7 @@ import com.example.aprendejapones.utils.TimeUtils
 @Composable
 fun PostCard(
     post: FirestorePost,
+    modifier: Modifier = Modifier,
     isSaved: Boolean = false,
     onLike: (String) -> Unit = {},
     onSave: (String) -> Unit = {},
@@ -115,46 +110,6 @@ fun PostCard(
                     .height(1.dp)
                     .background(BorderLight)
             )
-            Text(
-                text = category,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Medium,
-                color = color
-            )
-        }
-    }
-}
-
-@Composable
-private fun PostActions(
-    likesCount: Int,
-    commentsCount: Int,
-    isLiked: Boolean,
-    isSaved: Boolean,
-    onLike: () -> Unit,
-    onComment: () -> Unit,
-    onSave: () -> Unit
-) {
-    Row(
-        modifier = Modifier. fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Like button
-        ActionButton(
-            icon = if (isLiked) Icons. Default.Favorite else Icons.Default.FavoriteBorder,
-            count = likesCount,
-            tint = if (isLiked) Color.Red else TextSecondary,
-            onClick = onLike
-        )
-
-        // Comment button
-        ActionButton(
-            icon = Icons.Default.ChatBubbleOutline,
-            count = commentsCount,
-            tint = TextSecondary,
-            onClick = onComment
-        )
 
             // Acciones
             Row(

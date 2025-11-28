@@ -1,4 +1,4 @@
-package com. example.aprendejapones. presentation.screens.community
+package com.example.aprendejapones.presentation.screens.community
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -19,7 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui. unit.sp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.aprendejapones.domain.model.FirestoreComment
 import com.example.aprendejapones.domain.model.FirestorePost
@@ -57,7 +57,7 @@ fun CommunityScreen(
     // Mostrar error
     state.error?.let { error ->
         AlertDialog(
-            onDismissRequest = { viewModel. onEvent(CommunityEvent.DismissError) },
+            onDismissRequest = { viewModel.onEvent(CommunityEvent.DismissError) },
             title = { Text("Error") },
             text = { Text(error) },
             confirmButton = {
@@ -104,15 +104,11 @@ fun CommunityScreen(
 private fun CommunityContent(
     state: CommunityState,
     onEvent: (CommunityEvent) -> Unit,
-    onNavigateToNewPost: () -> Unit,
-    onNavigateToPostDetail: (String) -> Unit,
-    onNavigateToProfile: (String) -> Unit
+    onNavigateToNewPost: () -> Unit
 ) {
-    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = state.isRefreshing)
-
-    if (state.isLoading && ! state.isRefreshing) {
+    if (state.isLoading && !state.isRefreshing) {
         Box(
-            modifier = Modifier. fillMaxSize(),
+            modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             CircularProgressIndicator(color = PrimaryGreen)
@@ -706,7 +702,7 @@ private fun CommunityHeader() {
             .fillMaxWidth()
             .background(SurfaceWhite)
             .padding(20.dp),
-        contentAlignment = Alignment. Center
+        contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
@@ -735,7 +731,7 @@ private fun NewPostButton(
         modifier = modifier
             .fillMaxWidth()
             .border(2.dp, PrimaryGreen, RoundedCornerShape(8.dp)),
-        colors = ButtonDefaults. buttonColors(containerColor = PrimaryGreen),
+        colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),
         shape = RoundedCornerShape(8.dp),
         contentPadding = PaddingValues(14.dp)
     ) {
@@ -767,11 +763,11 @@ private fun CategoryFilterTabs(
     ScrollableTabRow(
         selectedTabIndex = categories.indexOf(selectedCategory),
         modifier = modifier,
-        edgePadding = 0. dp,
+        edgePadding = 0.dp,
         containerColor = androidx.compose.ui.graphics.Color.Transparent,
         indicator = {}
     ) {
-        categories. forEach { category ->
+        categories.forEach { category ->
             val isSelected = category == selectedCategory
             Tab(
                 selected = isSelected,
@@ -793,7 +789,7 @@ private fun CategoryFilterTabs(
                     fontSize = 12.sp,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     color = if (isSelected) PrimaryGreen else TextSecondary,
-                    modifier = Modifier. padding(horizontal = 16.dp, vertical = 8.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
         }
@@ -803,7 +799,7 @@ private fun CategoryFilterTabs(
 @Composable
 private fun EmptyState(modifier: Modifier = Modifier) {
     Column(
-        modifier = modifier. fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("📭", fontSize = 64.sp)

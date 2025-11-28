@@ -1,7 +1,7 @@
-package com.example.aprendejapones.presentation.screens. profile
+package com.example.aprendejapones.presentation.screens.profile
 
 import androidx.lifecycle.SavedStateHandle
-import androidx.lifecycle. ViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 
 import com.example.aprendejapones.domain.model.FirestorePost
@@ -11,7 +11,7 @@ import com.example.aprendejapones.domain.repository.FirestoreUserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject. Inject
+import javax.inject.Inject
 import com.example.aprendejapones.presentation.screens.profile.UserProfileState
 
 @HiltViewModel
@@ -38,7 +38,7 @@ class UserProfileViewModel @Inject constructor(
             firestoreUserRepository.getUserProfileFlow(userId)
                 .catch { error ->
                     android.util.Log.e("UserProfileVM", "Error loading user", error)
-                    _state. update { it.copy(error = error.message, isLoading = false) }
+                    _state.update { it.copy(error = error.message, isLoading = false) }
                 }
                 .collect { user ->
                     _state.update { it.copy(user = user, isLoading = false) }
