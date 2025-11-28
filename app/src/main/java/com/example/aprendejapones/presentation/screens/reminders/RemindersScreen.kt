@@ -1,7 +1,9 @@
 package com.example.aprendejapones.presentation.screens.reminders
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -18,11 +20,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.aprendejapones.notification.NotificationHelper
 import com.example.aprendejapones.presentation.theme.*
 
 @Composable
@@ -31,12 +35,31 @@ fun RemindersScreen(
     viewModel: RemindersViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val context = LocalContext.current
+    
+    // Get NotificationHelper via remember
+    val notificationHelper = remember { NotificationHelper(context) }
 
     LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 is RemindersEffect.ShowToast -> {
-                    // TODO: Mostrar toast
+                    // Toast handled elsewhere
+                }
+                is RemindersEffect.TriggerTestNotification -> {
+                    // Check permission and send notification
+                    val hasPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.POST_NOTIFICATIONS
+                        ) == PackageManager.PERMISSION_GRANTED
+                    } else {
+                        true
+                    }
+                    
+                    if (hasPermission) {
+                        notificationHelper.showDailyReminder(effect.useMotivational)
+                    }
                 }
             }
         }
@@ -141,6 +164,62 @@ fun RemindersScreen(
                         )
                     }
                 }
+            }
+            
+            // Debug button for testing notifications
+            DebugNotificationCard(
+                onTestNotification = { viewModel.onEvent(RemindersEvent.TestNotification) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun DebugNotificationCard(
+    onTestNotification: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(2.dp, AccentBlue.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+            .background(AccentBlue.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+            .padding(14.dp)
+    ) {
+        Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("🔧", fontSize = 20.sp)
+                Text(
+                    text = "Depuración",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = AccentBlue,
+                    modifier = Modifier.padding(start = 8.dp)
+                )
+            }
+            
+            Text(
+                text = "Prueba las notificaciones para asegurarte de que funcionan correctamente.",
+                fontSize = 11.sp,
+                color = TextSecondary,
+                lineHeight = 14.sp,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            
+            Button(
+                onClick = onTestNotification,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = AccentBlue
+                ),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Text(
+                    text = "📲 Enviar Notificación de Prueba",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }

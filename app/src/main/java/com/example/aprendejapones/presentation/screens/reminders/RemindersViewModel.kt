@@ -87,6 +87,27 @@ class RemindersViewModel @Inject constructor(
             RemindersEvent.SaveSettings -> {
                 saveSettings()
             }
+            RemindersEvent.TestNotification -> {
+                testNotification()
+            }
+        }
+    }
+
+    /**
+     * Test notification for debugging
+     */
+    private fun testNotification() {
+        viewModelScope.launch {
+            try {
+                val useMotivational = _state.value.motivationalMessages
+                // This will trigger a test notification immediately
+                _effects.emit(RemindersEffect.ShowToast("Enviando notificación de prueba..."))
+                
+                // Emit a special effect to trigger notification from UI with proper permissions
+                _effects.emit(RemindersEffect.TriggerTestNotification(useMotivational))
+            } catch (e: Exception) {
+                _effects.emit(RemindersEffect.ShowToast("Error al enviar notificación: ${e.message}"))
+            }
         }
     }
 

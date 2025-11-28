@@ -6,4 +6,5 @@ sealed class RemindersEvent {
     data class ToggleDay(val day: String) : RemindersEvent()
     data class ToggleMotivational(val enabled: Boolean) : RemindersEvent()
     object SaveSettings : RemindersEvent()
+    object TestNotification : RemindersEvent()
 }

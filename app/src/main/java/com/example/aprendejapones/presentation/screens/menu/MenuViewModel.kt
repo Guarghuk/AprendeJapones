@@ -2,6 +2,8 @@ package com.example.aprendejapones.presentation.screens.menu
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.aprendejapones.data.local.preferences.PreferencesManager
+import com.example.aprendejapones.domain.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -11,7 +13,10 @@ import javax.inject.Inject
  * ViewModel para MenuScreen
  */
 @HiltViewModel
-class MenuViewModel @Inject constructor(): ViewModel() {
+class MenuViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val preferencesManager: PreferencesManager
+): ViewModel() {
 
     private val _state = MutableStateFlow(MenuState())
     val state: StateFlow<MenuState> = _state.asStateFlow()
@@ -31,7 +36,32 @@ class MenuViewModel @Inject constructor(): ViewModel() {
 
     private fun navigateToScreen(screen: String) {
         viewModelScope.launch {
-            _effects.emit(MenuEffect.NavigateToScreen(screen))
+            // Handle toggle screens locally
+            when (screen) {
+                "darkMode" -> {
+                    val newValue = !_state.value.isDarkMode
+                    _state.update { it.copy(isDarkMode = newValue) }
+                    _effects.emit(
+                        MenuEffect.ShowToast(
+                            if (newValue) "Modo oscuro activado" else "Modo oscuro desactivado"
+                        )
+                    )
+                }
+                "sound" -> {
+                    val newValue = !_state.value.isSoundEnabled
+                    _state.update { it.copy(isSoundEnabled = newValue) }
+                    _effects.emit(
+                        MenuEffect.ShowToast(
+                            if (newValue) "Sonidos activados" else "Sonidos desactivados"
+                        )
+                    )
+                }
+                "rate" -> {
+                    // TODO: Open Play Store
+                    _effects.emit(MenuEffect.ShowToast("Próximamente disponible"))
+                }
+                else -> _effects.emit(MenuEffect.NavigateToScreen(screen))
+            }
         }
     }
 
@@ -59,8 +89,16 @@ class MenuViewModel @Inject constructor(): ViewModel() {
 
     private fun logout() {
         viewModelScope.launch {
-            // TODO: Implementar lógica de logout
-            _effects.emit(MenuEffect.NavigateToLogin)
+            try {
+                // Logout from Firebase
+                authRepository.logout()
+                // Clear preferences
+                preferencesManager.clearAll()
+                // Navigate to login
+                _effects.emit(MenuEffect.NavigateToLogin)
+            } catch (e: Exception) {
+                _effects.emit(MenuEffect.ShowToast("Error al cerrar sesión"))
+            }
         }
     }
 

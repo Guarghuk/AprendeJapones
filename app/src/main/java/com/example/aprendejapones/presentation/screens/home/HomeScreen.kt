@@ -122,6 +122,8 @@ private fun HomeContent(
                     total = challenge.total,
                     timeRemaining = challenge.timeRemaining,
                     rewardXP = challenge.rewardXP,
+                    rewardCoins = challenge.rewardCoins,
+                    difficulty = challenge.difficulty.displayName,
                     modifier = Modifier.padding(horizontal = 16.dp)  // Removed vertical padding
                 )
             }

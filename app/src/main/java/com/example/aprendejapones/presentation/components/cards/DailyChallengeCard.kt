@@ -22,14 +22,17 @@ fun DailyChallengeCard(
     total: Int,
     timeRemaining: String,
     rewardXP: Int,
+    rewardCoins: Int = 20,
+    difficulty: String = "Normal",
     modifier: Modifier = Modifier
 ) {
     val progress = if (total > 0) completed.toFloat() / total.toFloat() else 0f
+    val isCompleted = completed >= total
 
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .border(2.dp, PrimaryGreen, RoundedCornerShape(10.dp))
+            .border(2.dp, if (isCompleted) SuccessGreen else PrimaryGreen, RoundedCornerShape(10.dp))
             .background(SurfaceWhite, RoundedCornerShape(10.dp))
             .padding(16.dp)
     ) {
@@ -41,12 +44,29 @@ fun DailyChallengeCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Column {
-                    Text(
-                        text = "Desafío Diario",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "Desafío Diario",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        // Difficulty badge
+                        Box(
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .border(1.dp, AccentOrange, RoundedCornerShape(4.dp))
+                                .background(AccentOrangeLight, RoundedCornerShape(4.dp))
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = difficulty,
+                                fontSize = 9.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = AccentOrangeDark
+                            )
+                        }
+                    }
                     Text(
                         text = "Completa $total actividades",
                         fontSize = 11.sp,
@@ -84,17 +104,29 @@ fun DailyChallengeCard(
                     modifier = Modifier
                         .fillMaxWidth(progress)
                         .fillMaxHeight()
-                        .background(PrimaryGreen, RoundedCornerShape(6.dp))
+                        .background(if (isCompleted) SuccessGreen else PrimaryGreen, RoundedCornerShape(6.dp))
                 )
             }
 
-            // Información de progreso
-            Text(
-                text = "$completed/$total completadas • +$rewardXP 精",
-                fontSize = 10.sp,
-                color = TextSecondary,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            // Información de progreso y recompensas
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = if (isCompleted) "✅ ¡Completado!" else "$completed/$total completadas",
+                    fontSize = 10.sp,
+                    color = if (isCompleted) SuccessGreen else TextSecondary,
+                    fontWeight = if (isCompleted) FontWeight.Bold else FontWeight.Normal
+                )
+                Text(
+                    text = "+$rewardXP XP • +$rewardCoins 💧",
+                    fontSize = 10.sp,
+                    color = TextSecondary
+                )
+            }
         }
     }
 }

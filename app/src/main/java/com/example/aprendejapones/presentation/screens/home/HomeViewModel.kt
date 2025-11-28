@@ -146,8 +146,10 @@ class HomeViewModel @Inject constructor(
                 if (challenge?.isCompleted == true) {
                     // Award XP for completing daily challenge
                     userRepository.addXP(challenge.rewardXP)
+                    // Award coins for completing daily challenge
+                    userRepository.addDrops(challenge.rewardCoins)
                     _effects.emit(
-                        HomeEffect.ShowToast("Challenge completed! +${challenge.rewardXP} XP")
+                        HomeEffect.ShowToast("¡Desafío completado! +${challenge.rewardXP} XP, +${challenge.rewardCoins} monedas")
                     )
                 }
             } catch (e: Exception) {
