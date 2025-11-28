@@ -6,7 +6,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import androidx.lifecycle.SavedStateHandle
-import com.example.aprendejapones.data.local.database.entity.DailyChallengeEntity
 import com.example.aprendejapones.domain.manager.StreakManager
 import com.example.aprendejapones.domain.repository.LessonContentRepository
 import com.example.aprendejapones.domain.repository.LessonRepository
