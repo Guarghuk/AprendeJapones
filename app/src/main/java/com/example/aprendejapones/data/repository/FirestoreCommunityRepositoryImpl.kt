@@ -1,6 +1,7 @@
 package com.example.aprendejapones.data.repository
 
 import com.example.aprendejapones.domain.model.FirestoreComment
+import com.example.aprendejapones.domain.model.FirestoreLike
 import com.example.aprendejapones.domain.model.FirestorePost
 import com.example.aprendejapones.domain.model.FirestoreSavedPost
 import com.example.aprendejapones.domain.model.FirestoreUser
@@ -9,10 +10,13 @@ import com.example.aprendejapones.domain.repository.CommunityRepository
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.type.Date
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -93,19 +97,13 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     return@withContext Result.success(Unit)
                 }
 
-                // Create like in subcollection: /posts/{postId}/likes/{userId}
-                // Document ID is the user's UID for easy lookup and security rules
-                val likeData = mapOf(
-                    "id_usuario" to userId,
-                    "fecha_reaccion" to com.google.firebase.Timestamp.now()
-                )
-                firestore.collection("posts").document(postId)
-                    .collection("likes").document(userId)
-                    .set(likeData).await()
+                val likeId = "${userId}_${postId}"
 
-                // TODO: Remove client-side counter update once Cloud Functions are deployed
-                // and verified to be working. Currently kept for backward compatibility
-                // during migration. Cloud Functions will handle contador_likes automatically.
+                // Create like
+                val like = FirestoreLike(userId, postId, System.currentTimeMillis())
+                firestore.collection("likes").document(likeId).set(like).await()
+
+                // Increment counter
                 firestore.collection("posts").document(postId)
                     .update("likesCount", FieldValue.increment(1))
                     .await()
@@ -125,14 +123,12 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 val userId = authRepository.getCurrentUserId()
                     ?: return@withContext Result.failure(Exception("Not logged in"))
 
-                // Delete like from subcollection: /posts/{postId}/likes/{userId}
-                firestore.collection("posts").document(postId)
-                    .collection("likes").document(userId)
-                    .delete().await()
+                val likeId = "${userId}_${postId}"
 
-                // TODO: Remove client-side counter update once Cloud Functions are deployed
-                // and verified to be working. Currently kept for backward compatibility
-                // during migration. Cloud Functions will handle contador_likes automatically.
+                // Delete like
+                firestore.collection("likes").document(likeId).delete().await()
+
+                // Decrement counter
                 firestore.collection("posts").document(postId)
                     .update("likesCount", FieldValue.increment(-1))
                     .await()
@@ -155,21 +151,18 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 val user = getUserProfile(userId)
                     ?: return@withContext Result.failure(Exception("User profile not found"))
 
-                // Create comment in subcollection: /posts/{postId}/comments/{commentId}
-                val commentData = mapOf(
-                    "id_autor" to userId,
-                    "nombre_autor" to user.username,
-                    "foto_autor_url" to user.photoUrl,
-                    "contenido" to content,
-                    "fecha_publicacion" to com.google.firebase.Timestamp.now()
+                val comment = FirestoreComment(
+                    postId = postId,
+                    authorId = userId,
+                    authorName = user.username,
+                    authorPhotoUrl = user.photoUrl,
+                    content = content,
+                    createdAt = System.currentTimeMillis()
                 )
 
-                firestore.collection("posts").document(postId)
-                    .collection("comments").add(commentData).await()
+                firestore.collection("comments").add(comment).await()
 
-                // TODO: Remove client-side counter update once Cloud Functions are deployed
-                // and verified to be working. Currently kept for backward compatibility
-                // during migration. Cloud Functions will handle contador_comentarios automatically.
+                // Increment comments counter
                 firestore.collection("posts").document(postId)
                     .update("commentsCount", FieldValue.increment(1))
                     .await()
@@ -184,29 +177,17 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
     }
 
     override fun getCommentsFlow(postId: String): Flow<List<FirestoreComment>> = callbackFlow {
-        // Read comments from subcollection: /posts/{postId}/comments
-        val listener = firestore.collection("posts").document(postId)
-            .collection("comments")
-            .orderBy("fecha_publicacion", Query.Direction.ASCENDING)
+        val listener = firestore.collection("comments")
+            .whereEqualTo("postId", postId)
+            .orderBy("createdAt", Query.Direction.ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
                     return@addSnapshotListener
                 }
 
-                val comments = snapshot?.documents?.mapNotNull { doc ->
-                    // Map from new schema to FirestoreComment model
-                    val data = doc.data ?: return@mapNotNull null
-                    FirestoreComment(
-                        id = doc.id,
-                        postId = postId,
-                        authorId = data["id_autor"] as? String ?: "",
-                        authorName = data["nombre_autor"] as? String ?: "",
-                        authorPhotoUrl = data["foto_autor_url"] as? String,
-                        content = data["contenido"] as? String ?: "",
-                        createdAt = (data["fecha_publicacion"] as? com.google.firebase.Timestamp)?.toDate()?.time 
-                            ?: System.currentTimeMillis()
-                    )
+                val comments = snapshot?.documents?.mapNotNull {
+                    it.toObject(FirestoreComment::class.java)?.copy(id = it.id)
                 } ?: emptyList()
 
                 trySend(comments)
@@ -218,10 +199,8 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
     override suspend fun hasUserLikedPost(postId: String): Boolean = withContext(Dispatchers.IO) {
         try {
             val userId = authRepository.getCurrentUserId() ?: return@withContext false
-            // Check like in subcollection: /posts/{postId}/likes/{userId}
-            val doc = firestore.collection("posts").document(postId)
-                .collection("likes").document(userId)
-                .get().await()
+            val likeId = "${userId}_${postId}"
+            val doc = firestore.collection("likes").document(likeId).get().await()
             doc.exists()
         } catch (e: Exception) {
             false
@@ -236,28 +215,34 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
 
                 // Verify ownership
                 val post = firestore.collection("posts").document(postId).get().await()
-                val postAuthorId = post.getString("authorId") ?: post.getString("id_autor")
+                val postAuthorId = post.getString("authorId")
 
                 if (postAuthorId != userId) {
                     return@withContext Result.failure(Exception("Not authorized"))
                 }
 
-                // Delete likes from subcollection: /posts/{postId}/likes
-                val likesSubcollection = firestore.collection("posts").document(postId)
-                    .collection("likes").get().await()
-                for (like in likesSubcollection.documents) {
+                // Delete post
+                firestore.collection("posts").document(postId).delete().await()
+
+                // Delete likes
+                val likes = firestore.collection("likes")
+                    .whereEqualTo("postId", postId)
+                    .get()
+                    .await()
+
+                for (like in likes.documents) {
                     like.reference.delete().await()
                 }
 
-                // Delete comments from subcollection: /posts/{postId}/comments
-                val commentsSubcollection = firestore.collection("posts").document(postId)
-                    .collection("comments").get().await()
-                for (comment in commentsSubcollection.documents) {
+                // Delete comments
+                val comments = firestore.collection("comments")
+                    .whereEqualTo("postId", postId)
+                    .get()
+                    .await()
+
+                for (comment in comments.documents) {
                     comment.reference.delete().await()
                 }
-
-                // Delete post
-                firestore.collection("posts").document(postId).delete().await()
 
                 // Delete associated saved posts
                 val savedPosts = firestore.collection("saved_posts")
@@ -445,10 +430,8 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
             return@callbackFlow
         }
 
-        // Use collection group query to find all likes by this user across all posts
-        // Each like doc is at /posts/{postId}/likes/{userId} with id_usuario field
-        val listener = firestore.collectionGroup("likes")
-            .whereEqualTo("id_usuario", userId)
+        val listener = firestore.collection("likes")
+            .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     android.util.Log.e("FirestoreCommunity", "Error loading liked post IDs", error)
@@ -456,15 +439,8 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     return@addSnapshotListener
                 }
 
-                // Extract postId from the document path: /posts/{postId}/likes/{userId}
-                val postIds = snapshot?.documents?.mapNotNull { doc ->
-                    // Path is: posts/{postId}/likes/{likeDocId}
-                    val pathSegments = doc.reference.path.split("/")
-                    if (pathSegments.size >= 2 && pathSegments[0] == "posts") {
-                        pathSegments[1] // This is the postId
-                    } else {
-                        null
-                    }
+                val postIds = snapshot?.documents?.mapNotNull {
+                    it.getString("postId")
                 }?.toSet() ?: emptySet()
 
                 trySend(postIds)
