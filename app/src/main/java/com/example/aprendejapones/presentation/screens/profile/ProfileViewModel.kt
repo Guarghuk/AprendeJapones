@@ -25,6 +25,18 @@ class ProfileViewModel @Inject constructor(
 
     init {
         loadInitialData()
+        observeUserChanges()
+    }
+    
+    /**
+     * Observe user changes reactively to update UI when data changes
+     */
+    private fun observeUserChanges() {
+        viewModelScope.launch {
+            userRepository.getCurrentUserFlow().collect { user ->
+                _state.update { it.copy(user = user) }
+            }
+        }
     }
 
     fun onEvent(event: ProfileEvent) {

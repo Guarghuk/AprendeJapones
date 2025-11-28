@@ -26,6 +26,21 @@ data class HomeState(
 
     val drops: Int
         get() = user?.drops ?: 0
+    
+    val username: String
+        get() = user?.username ?: "Usuario"
+    
+    val avatarLetter: String
+        get() = user?.avatarLetter ?: "K"
+    
+    val level: Int
+        get() = user?.level ?: 1
+    
+    val currentXP: Int
+        get() = user?.currentXP ?: 0
+    
+    val maxXP: Int
+        get() = user?.maxXP ?: 100
 
     val hasNotifications: Boolean
         get() = false // TODO: Implementar lógica de notificaciones

@@ -118,7 +118,8 @@ private fun ProfileContent(
                 level = state.level,
                 currentXP = state.currentXP,
                 maxXP = state.maxXP,
-                xpProgress = state.xpProgress
+                xpProgress = state.xpProgress,
+                drops = state.drops
             )
 
             StatsCard(

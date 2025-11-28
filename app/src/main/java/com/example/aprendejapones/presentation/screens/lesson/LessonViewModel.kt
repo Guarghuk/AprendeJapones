@@ -160,6 +160,9 @@ class LessonViewModel @Inject constructor(
             try {
                 // Calcular XP ganado
                 val xpEarned = state.correctAnswers * 10
+                
+                // Calcular monedas ganadas (basado en rendimiento)
+                val coinsEarned = calculateCoinsEarned(state.correctAnswers, state.totalQuestions)
 
                 // Guardar lección completada
                 lessonRepository.saveLesson(
@@ -173,6 +176,11 @@ class LessonViewModel @Inject constructor(
 
                 // Actualizar XP
                 userRepository.addXP(xpEarned)
+                
+                // Actualizar monedas (drops)
+                if (coinsEarned > 0) {
+                    userRepository.addDrops(coinsEarned)
+                }
 
                 // Actualizar racha
                 streakManager.checkAndUpdateStreak()
@@ -183,13 +191,39 @@ class LessonViewModel @Inject constructor(
                 // Actualizar desafío diario
                 lessonRepository.updateChallengeProgress()
 
-                // Mostrar resultados
-                _state.update { it.copy(showResults = true) }
+                // Mostrar resultados con recompensas
+                _state.update { 
+                    it.copy(
+                        showResults = true,
+                        xpEarned = xpEarned,
+                        coinsEarned = coinsEarned
+                    ) 
+                }
+                
+                // Mostrar mensaje de recompensas
+                _effects.emit(LessonEffect.ShowToast("+$xpEarned XP, +$coinsEarned 💧"))
 
             } catch (e: Exception) {
                 _effects.emit(LessonEffect.ShowToast("Error al guardar progreso"))
             }
         }
+    }
+    
+    /**
+     * Calcula las monedas ganadas basándose en el rendimiento
+     * Base: 5 monedas, bonus por respuestas correctas
+     */
+    private fun calculateCoinsEarned(correctAnswers: Int, totalQuestions: Int): Int {
+        if (totalQuestions == 0) return 0
+        val baseCoins = 5
+        val percentage = correctAnswers.toFloat() / totalQuestions
+        val bonusCoins = when {
+            percentage >= 1.0f -> 10  // Perfecto: +10 bonus
+            percentage >= 0.8f -> 5   // Muy bien: +5 bonus
+            percentage >= 0.6f -> 2   // Bien: +2 bonus
+            else -> 0
+        }
+        return baseCoins + bonusCoins
     }
 
     private suspend fun updateCategoryProgress(

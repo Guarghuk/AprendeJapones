@@ -26,6 +26,7 @@ fun UserInfoCard(
     currentXP: Int,
     maxXP: Int,
     xpProgress: Float,
+    drops: Int = 0,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -69,12 +70,21 @@ fun UserInfoCard(
                         color = TextSecondary,
                         modifier = Modifier.padding(top = 2.dp)
                     )
-                    Text(
-                        text = "Miembro desde: $memberSince",
-                        fontSize = 10.sp,
-                        color = TextTertiary,
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(top = 2.dp)
-                    )
+                    ) {
+                        Text(
+                            text = "💧 $drops monedas",
+                            fontSize = 10.sp,
+                            color = AccentBlue
+                        )
+                        Text(
+                            text = "• $memberSince",
+                            fontSize = 10.sp,
+                            color = TextTertiary
+                        )
+                    }
                 }
             }
 

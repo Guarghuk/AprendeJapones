@@ -48,6 +48,8 @@ fun LessonScreen(
         ResultsScreen(
             correctAnswers = state.correctAnswers,
             totalQuestions = state.totalQuestions,
+            xpEarned = state.xpEarned,
+            coinsEarned = state.coinsEarned,
             onBack = onBack,
             onContinue = { viewModel.onEvent(LessonEvent.RestartLesson) }
         )
@@ -394,11 +396,12 @@ private fun LessonNavigation(
 fun ResultsScreen(
     correctAnswers: Int,
     totalQuestions: Int,
+    xpEarned: Int,
+    coinsEarned: Int,
     onBack: () -> Unit,
     onContinue: () -> Unit
 ) {
-    val accuracy = (correctAnswers.toFloat() / totalQuestions * 100).toInt()
-    val xpEarned = correctAnswers * 5
+    val accuracy = if (totalQuestions > 0) (correctAnswers.toFloat() / totalQuestions * 100).toInt() else 0
 
     Column(
         modifier = Modifier
@@ -446,11 +449,12 @@ fun ResultsScreen(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 ResultStat("$correctAnswers/$totalQuestions", "Correctas", Modifier.weight(1f))
                 ResultStat("$accuracy%", "Precisión", Modifier.weight(1f), PrimaryGreen)
-                ResultStat("+$xpEarned", "XP Ganados", Modifier.weight(1f), AccentBlue)
+                ResultStat("+$xpEarned", "XP", Modifier.weight(1f), AccentBlue)
+                ResultStat("+$coinsEarned 💧", "Monedas", Modifier.weight(1f), AccentBlue)
             }
         }
 

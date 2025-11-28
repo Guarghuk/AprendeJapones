@@ -91,6 +91,7 @@ private fun HomeContent(
     ) {
         item {
             HeaderSection(
+                avatarLetter = state.avatarLetter,
                 rank = state.userRank,
                 streak = state.streak,
                 drops = state.drops,
@@ -133,6 +134,7 @@ private fun HomeContent(
  */
 @Composable
 private fun HeaderSection(
+    avatarLetter: String,
     rank: String,
     streak: Int,
     drops: Int,
@@ -162,7 +164,7 @@ private fun HeaderSection(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "K",
+                        text = avatarLetter,
                         fontWeight = FontWeight.Bold,
                         fontSize = 20.sp,
                         color = Color.White
