@@ -54,13 +54,11 @@ class ProfileViewModel @Inject constructor(
             _state.update { it.copy(isLoading = true, error = null) }
 
             try {
-                // Get user
-                val user = userRepository.getCurrentUser()
-
                 // Get achievements
                 val achievements = achievementRepository.getUserAchievements()
 
-                // Get lesson stats
+                // Get lesson stats from the current user data
+                val user = _state.value.user
                 val lessonStats = lessonRepository.getLessonStats()
                 val stats = ProfileStats(
                     streak = user?.streak ?: 0,
@@ -73,7 +71,6 @@ class ProfileViewModel @Inject constructor(
 
                 _state.update {
                     it.copy(
-                        user = user,
                         stats = stats,
                         achievements = achievements,
                         recentActivity = activity,
