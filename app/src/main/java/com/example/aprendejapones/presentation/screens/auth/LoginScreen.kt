@@ -31,7 +31,7 @@ fun LoginScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
-    Column (
+    Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
@@ -71,7 +71,7 @@ fun LoginScreen(
         Spacer(modifier = Modifier.height(24.dp))
 
         // Login Button
-        Button (
+        Button(
             onClick = { viewModel.onEvent(AuthEvent.Login) },
             enabled = !state.isLoading,
             modifier = Modifier.fillMaxWidth()
@@ -80,13 +80,13 @@ fun LoginScreen(
         }
 
         // Register Button
-        TextButton (onClick = onNavigateToRegister) {
+        TextButton(onClick = onNavigateToRegister) {
             Text("¿No tienes cuenta? Regístrate")
         }
     }
 
     // Observar efectos
-    LaunchedEffect (Unit) {
+    LaunchedEffect(Unit) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 is AuthEffect.LoginSuccess -> onLoginSuccess()
