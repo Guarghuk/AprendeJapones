@@ -3,8 +3,9 @@ package com.example.aprendejapones.presentation.screens.profile
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.aprendejapones.domain.repository.AchievementRepository
+import com.example.aprendejapones.domain.repository.AuthRepository
+import com.example.aprendejapones.domain.repository.FirestoreUserRepository
 import com.example.aprendejapones.domain.repository.LessonRepository
-import com.example.aprendejapones.domain.repository.UserRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -12,7 +13,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val userRepository: UserRepository,
+    private val authRepository: AuthRepository,
+    private val firestoreUserRepository: FirestoreUserRepository,
     private val achievementRepository: AchievementRepository,
     private val lessonRepository: LessonRepository
 ) : ViewModel() {
@@ -24,17 +26,27 @@ class ProfileViewModel @Inject constructor(
     val effects: SharedFlow<ProfileEffect> = _effects.asSharedFlow()
 
     init {
-        loadInitialData()
         observeUserChanges()
+        loadInitialData()
     }
     
     /**
-     * Observe user changes reactively to update UI when data changes
+     * Observe user changes reactively from Firebase Firestore to update UI when data changes
      */
     private fun observeUserChanges() {
         viewModelScope.launch {
-            userRepository.getCurrentUserFlow().collect { user ->
-                _state.update { it.copy(user = user) }
+            val userId = authRepository.getCurrentUserId()
+            if (userId != null) {
+                firestoreUserRepository.getUserProfileFlow(userId)
+                    .catch { error ->
+                        android.util.Log.e("ProfileViewModel", "Error observing user", error)
+                        _state.update { it.copy(error = "Error loading profile: ${error.message}") }
+                    }
+                    .collect { user ->
+                        _state.update { it.copy(user = user) }
+                    }
+            } else {
+                _state.update { it.copy(error = "No has iniciado sesión") }
             }
         }
     }
