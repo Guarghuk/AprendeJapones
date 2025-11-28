@@ -86,7 +86,7 @@ fun PostCard(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            text = TimeUtils.formatRelativeTime(post.createdAt.time),
+                            text = TimeUtils.formatRelativeTime(post.createdAt),
                             fontSize = 11.sp,
                             color = TextTertiary
                         )

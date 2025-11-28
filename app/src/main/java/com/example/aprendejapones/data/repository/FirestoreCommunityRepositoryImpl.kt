@@ -143,7 +143,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     authorName = user.username,
                     authorPhotoUrl = user.photoUrl,
                     content = content,
-                    createdAt = java.util.Date(System.currentTimeMillis())
+                    createdAt = System.currentTimeMillis()
                 )
 
                 firestore.collection("comments").add(comment).await()

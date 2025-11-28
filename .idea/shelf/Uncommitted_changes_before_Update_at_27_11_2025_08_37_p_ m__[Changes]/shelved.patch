@@ -1,0 +1,559 @@
+Index: app/src/main/java/com/example/aprendejapones/presentation/components/cards/PostCard.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.aprendejapones.presentation.components.cards\r\n\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.border\r\nimport androidx.compose.foundation. clickable\r\nimport androidx.compose. foundation.layout.*\r\nimport androidx.compose.foundation. shape.CircleShape\r\nimport androidx.compose. foundation.shape.RoundedCornerShape\r\nimport androidx.compose. material. icons.Icons\r\nimport androidx.compose.material.icons.filled. Bookmark\r\nimport androidx.compose.material. icons.filled.BookmarkBorder\r\nimport androidx.compose.material. icons.filled.ChatBubbleOutline\r\nimport androidx.compose. material.icons.filled. Favorite\r\nimport androidx.compose.material.icons.filled.FavoriteBorder\r\nimport androidx.compose. material3.*\r\nimport androidx.compose.runtime. Composable\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui.unit.sp\r\nimport com.example.aprendejapones.domain.model.FirestorePost\r\nimport com.example.aprendejapones.presentation.theme.*\r\nimport com.example.aprendejapones.utils.TimeUtils\r\n\r\n/**\r\n * Card de post mejorado con todas las funcionalidades\r\n */\r\n@Composable\r\nfun PostCard(\r\n    post: FirestorePost,\r\n    isSaved: Boolean = false,\r\n    onLike: (String) -> Unit = {},\r\n    onSave: (String) -> Unit = {},\r\n    onCommentClick: (FirestorePost) -> Unit = {}\r\n) {\r\n    Box(\r\n        modifier = modifier\r\n            .fillMaxWidth()\r\n            .clip(RoundedCornerShape(12.dp))\r\n            .border(1.dp, BorderGray, RoundedCornerShape(12.dp))\r\n            .background(SurfaceWhite, RoundedCornerShape(12.dp))\r\n            .clickable { onCommentClick(post) }\r\n            .padding(16.dp)\r\n    ) {\r\n        Column {\r\n            // Header del post\r\n            Row(\r\n                verticalAlignment = Alignment.CenterVertically,\r\n                modifier = Modifier.padding(bottom = 12.dp)\r\n            ) {\r\n                // Avatar\r\n                Box(\r\n                    modifier = Modifier\r\n                        .size(44.dp)\r\n                        .border(2.dp, PrimaryGreen, RoundedCornerShape(22.dp))\r\n                        .background(PrimaryGreenLight, RoundedCornerShape(22.dp)),\r\n                    contentAlignment = Alignment.Center\r\n                ) {\r\n                    Text(\r\n                        text = post.authorName.firstOrNull()?.uppercase() ?: \"?\",\r\n                        fontWeight = FontWeight.Bold,\r\n                        color = PrimaryGreen,\r\n                        fontSize = 18.sp\r\n                    )\r\n                }\r\n\r\n                Column(modifier = Modifier.padding(start = 12.dp)) {\r\n                    Text(\r\n                        text = post.authorName,\r\n                        fontSize = 14.sp,\r\n                        fontWeight = FontWeight.SemiBold,\r\n                        color = TextPrimary\r\n                    )\r\n                    Row(\r\n                        verticalAlignment = Alignment.CenterVertically,\r\n                        horizontalArrangement = Arrangement.spacedBy(6.dp)\r\n                    ) {\r\n                        Text(\r\n                            text = TimeUtils.formatRelativeTime(post.createdAt),\r\n                            fontSize = 11.sp,\r\n                            color = TextTertiary\r\n                        )\r\n                        if (post.category.isNotEmpty() && post.category != \"General\") {\r\n                            Text(\r\n                                text = \"•\",\r\n                                fontSize = 11.sp,\r\n                                color = TextTertiary\r\n                            )\r\n                            Text(\r\n                                text = post.category,\r\n                                fontSize = 11.sp,\r\n                                color = PrimaryGreen,\r\n                                fontWeight = FontWeight.Medium\r\n                            )\r\n                        }\r\n                    }\r\n                }\r\n            }\r\n\r\n            // Contenido\r\n            Text(\r\n                text = post.content,\r\n                fontSize = 14.sp,\r\n                color = TextPrimary,\r\n                lineHeight = 20.sp,\r\n                modifier = Modifier.padding(bottom = 14.dp)\r\n            )\r\n\r\n            // Divider\r\n            Box(\r\n                modifier = Modifier\r\n                    .fillMaxWidth()\r\n                    .height(1.dp)\r\n                    .background(BorderLight)\r\n            )\r\n            Text(\r\n                text = category,\r\n                fontSize = 11.sp,\r\n                fontWeight = FontWeight.Medium,\r\n                color = color\r\n            )\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun PostActions(\r\n    likesCount: Int,\r\n    commentsCount: Int,\r\n    isLiked: Boolean,\r\n    isSaved: Boolean,\r\n    onLike: () -> Unit,\r\n    onComment: () -> Unit,\r\n    onSave: () -> Unit\r\n) {\r\n    Row(\r\n        modifier = Modifier. fillMaxWidth(),\r\n        horizontalArrangement = Arrangement.SpaceBetween,\r\n        verticalAlignment = Alignment.CenterVertically\r\n    ) {\r\n        // Like button\r\n        ActionButton(\r\n            icon = if (isLiked) Icons. Default.Favorite else Icons.Default.FavoriteBorder,\r\n            count = likesCount,\r\n            tint = if (isLiked) Color.Red else TextSecondary,\r\n            onClick = onLike\r\n        )\r\n\r\n        // Comment button\r\n        ActionButton(\r\n            icon = Icons.Default.ChatBubbleOutline,\r\n            count = commentsCount,\r\n            tint = TextSecondary,\r\n            onClick = onComment\r\n        )\r\n\r\n            // Acciones\r\n            Row(\r\n                horizontalArrangement = Arrangement.SpaceBetween,\r\n                verticalAlignment = Alignment.CenterVertically,\r\n                modifier = Modifier\r\n                    .fillMaxWidth()\r\n                    .padding(top = 12.dp)\r\n            ) {\r\n                // Comments\r\n                Row(\r\n                    verticalAlignment = Alignment.CenterVertically,\r\n                    modifier = Modifier\r\n                        .clip(RoundedCornerShape(8.dp))\r\n                        .clickable { onCommentClick(post) }\r\n                        .padding(horizontal = 8.dp, vertical = 4.dp)\r\n                ) {\r\n                    Text(\r\n                        text = \"\uD83D\uDCAC\",\r\n                        fontSize = 14.sp\r\n                    )\r\n                    Spacer(modifier = Modifier.width(4.dp))\r\n                    Text(\r\n                        text = \"${post.commentsCount}\",\r\n                        fontSize = 12.sp,\r\n                        color = TextSecondary,\r\n                        fontWeight = FontWeight.Medium\r\n                    )\r\n                }\r\n\r\n                // Likes\r\n                Row(\r\n                    verticalAlignment = Alignment.CenterVertically,\r\n                    modifier = Modifier\r\n                        .clip(RoundedCornerShape(8.dp))\r\n                        .clickable { onLike(post.id) }\r\n                        .padding(horizontal = 8.dp, vertical = 4.dp)\r\n                ) {\r\n                    Text(\r\n                        text = \"\uD83D\uDC4D\",\r\n                        fontSize = 14.sp\r\n                    )\r\n                    Spacer(modifier = Modifier.width(4.dp))\r\n                    Text(\r\n                        text = \"${post.likesCount}\",\r\n                        fontSize = 12.sp,\r\n                        color = TextSecondary,\r\n                        fontWeight = FontWeight.Medium\r\n                    )\r\n                }\r\n\r\n                // Saves count display\r\n                Row(\r\n                    verticalAlignment = Alignment.CenterVertically,\r\n                    modifier = Modifier\r\n                        .padding(horizontal = 8.dp, vertical = 4.dp)\r\n                ) {\r\n                    Text(\r\n                        text = \"\uD83D\uDD16\",\r\n                        fontSize = 14.sp\r\n                    )\r\n                    Spacer(modifier = Modifier.width(4.dp))\r\n                    Text(\r\n                        text = \"${post.savesCount}\",\r\n                        fontSize = 12.sp,\r\n                        color = TextSecondary,\r\n                        fontWeight = FontWeight.Medium\r\n                    )\r\n                }\r\n\r\n                // Save button\r\n                Row(\r\n                    verticalAlignment = Alignment.CenterVertically,\r\n                    modifier = Modifier\r\n                        .clip(RoundedCornerShape(8.dp))\r\n                        .background(if (isSaved) PrimaryGreenLight else SurfaceGray)\r\n                        .clickable { onSave(post.id) }\r\n                        .padding(horizontal = 10.dp, vertical = 6.dp)\r\n                ) {\r\n                    Text(\r\n                        text = if (isSaved) \"\uD83D\uDCCC\" else \"\uD83D\uDCCD\",\r\n                        fontSize = 12.sp\r\n                    )\r\n                    Spacer(modifier = Modifier.width(4.dp))\r\n                    Text(\r\n                        text = if (isSaved) \"Guardado\" else \"Guardar\",\r\n                        fontSize = 11.sp,\r\n                        color = if (isSaved) PrimaryGreen else TextSecondary,\r\n                        fontWeight = if (isSaved) FontWeight.SemiBold else FontWeight.Medium\r\n                    )\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n/**\r\n * Obtiene icono y color según categoría\r\n */\r\nprivate fun getCategoryIconAndColor(category: String): Pair<String, Color> {\r\n    return when (category) {\r\n        \"General\" -> \"\uD83D\uDCAC\" to Color(0xFF9E9E9E)\r\n        \"Gramática\" -> \"\uD83D\uDCD6\" to Color(0xFF2196F3)\r\n        \"Vocabulario\" -> \"\uD83D\uDCDA\" to Color(0xFF9C27B0)\r\n        \"Kanji\" -> \"漢\" to Color(0xFFE91E63)\r\n        \"Pronunciación\" -> \"\uD83C\uDFA4\" to Color(0xFFFF9800)\r\n        \"Cultura\" -> \"\uD83C\uDF8C\" to Color(0xFFF44336)\r\n        else -> \"\uD83D\uDCAC\" to Color(0xFF9E9E9E)\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/aprendejapones/presentation/components/cards/PostCard.kt b/app/src/main/java/com/example/aprendejapones/presentation/components/cards/PostCard.kt
+--- a/app/src/main/java/com/example/aprendejapones/presentation/components/cards/PostCard.kt	(revision 2fa453a5df33e4358afdfedc2d78d787f7844c07)
++++ b/app/src/main/java/com/example/aprendejapones/presentation/components/cards/PostCard.kt	(date 1764293498638)
+@@ -1,22 +1,24 @@
+ package com.example.aprendejapones.presentation.components.cards
+ 
+ import androidx.compose.foundation.background
+-import androidx.compose.foundation.border
++import androidx.compose.foundation. border
+ import androidx.compose.foundation. clickable
+-import androidx.compose. foundation.layout.*
+-import androidx.compose.foundation. shape.CircleShape
+-import androidx.compose. foundation.shape.RoundedCornerShape
+-import androidx.compose. material. icons.Icons
+-import androidx.compose.material.icons.filled. Bookmark
+-import androidx.compose.material. icons.filled.BookmarkBorder
+-import androidx.compose.material. icons.filled.ChatBubbleOutline
+-import androidx.compose. material.icons.filled. Favorite
++import androidx.compose.foundation.layout.*
++import androidx.compose.foundation.shape.CircleShape
++import androidx.compose.foundation.shape.RoundedCornerShape
++import androidx.compose.material.icons.Icons
++import androidx.compose.material.icons.filled.Bookmark
++import androidx.compose.material.icons.filled.BookmarkBorder
++import androidx.compose.material.icons.filled.ChatBubbleOutline
++import androidx.compose.material.icons.filled.Favorite
+ import androidx.compose.material.icons.filled.FavoriteBorder
+-import androidx.compose. material3.*
+-import androidx.compose.runtime. Composable
+-import androidx.compose.ui.Alignment
++import androidx.compose.material3.*
++import androidx.compose.runtime.Composable
++import androidx. compose.ui.Alignment
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.draw.clip
++import androidx.compose.ui.graphics.Color
++import androidx.compose.ui.graphics.vector.ImageVector
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.dp
+ import androidx.compose.ui.unit.sp
+@@ -36,11 +38,11 @@
+     onCommentClick: (FirestorePost) -> Unit = {}
+ ) {
+     Box(
+-        modifier = modifier
++        modifier = Modifier
+             .fillMaxWidth()
+             .clip(RoundedCornerShape(12.dp))
+             .border(1.dp, BorderGray, RoundedCornerShape(12.dp))
+-            .background(SurfaceWhite, RoundedCornerShape(12.dp))
++            . background(SurfaceWhite, RoundedCornerShape(12.dp))
+             .clickable { onCommentClick(post) }
+             .padding(16.dp)
+     ) {
+@@ -59,7 +61,7 @@
+                     contentAlignment = Alignment.Center
+                 ) {
+                     Text(
+-                        text = post.authorName.firstOrNull()?.uppercase() ?: "?",
++                        text = post.authorName. firstOrNull()?.uppercase() ?: "? ",
+                         fontWeight = FontWeight.Bold,
+                         color = PrimaryGreen,
+                         fontSize = 18.sp
+@@ -68,30 +70,31 @@
+ 
+                 Column(modifier = Modifier.padding(start = 12.dp)) {
+                     Text(
+-                        text = post.authorName,
++                        text = post. authorName,
+                         fontSize = 14.sp,
+                         fontWeight = FontWeight.SemiBold,
+                         color = TextPrimary
+                     )
+                     Row(
+                         verticalAlignment = Alignment.CenterVertically,
+-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
++                        horizontalArrangement = Arrangement. spacedBy(6.dp)
+                     ) {
+                         Text(
+                             text = TimeUtils.formatRelativeTime(post.createdAt),
+                             fontSize = 11.sp,
+                             color = TextTertiary
+                         )
+-                        if (post.category.isNotEmpty() && post.category != "General") {
++                        if (post.category. isNotEmpty() && post.category != "General") {
+                             Text(
+                                 text = "•",
+-                                fontSize = 11.sp,
++                                fontSize = 11. sp,
+                                 color = TextTertiary
+                             )
++                            val (categoryIcon, categoryColor) = getCategoryIconAndColor(post.category)
+                             Text(
+-                                text = post.category,
++                                text = "$categoryIcon ${post.category}",
+                                 fontSize = 11.sp,
+-                                color = PrimaryGreen,
++                                color = categoryColor,
+                                 fontWeight = FontWeight.Medium
+                             )
+                         }
+@@ -115,50 +118,10 @@
+                     .height(1.dp)
+                     .background(BorderLight)
+             )
+-            Text(
+-                text = category,
+-                fontSize = 11.sp,
+-                fontWeight = FontWeight.Medium,
+-                color = color
+-            )
+-        }
+-    }
+-}
+-
+-@Composable
+-private fun PostActions(
+-    likesCount: Int,
+-    commentsCount: Int,
+-    isLiked: Boolean,
+-    isSaved: Boolean,
+-    onLike: () -> Unit,
+-    onComment: () -> Unit,
+-    onSave: () -> Unit
+-) {
+-    Row(
+-        modifier = Modifier. fillMaxWidth(),
+-        horizontalArrangement = Arrangement.SpaceBetween,
+-        verticalAlignment = Alignment.CenterVertically
+-    ) {
+-        // Like button
+-        ActionButton(
+-            icon = if (isLiked) Icons. Default.Favorite else Icons.Default.FavoriteBorder,
+-            count = likesCount,
+-            tint = if (isLiked) Color.Red else TextSecondary,
+-            onClick = onLike
+-        )
+-
+-        // Comment button
+-        ActionButton(
+-            icon = Icons.Default.ChatBubbleOutline,
+-            count = commentsCount,
+-            tint = TextSecondary,
+-            onClick = onComment
+-        )
+ 
+             // Acciones
+             Row(
+-                horizontalArrangement = Arrangement.SpaceBetween,
++                horizontalArrangement = Arrangement. SpaceBetween,
+                 verticalAlignment = Alignment.CenterVertically,
+                 modifier = Modifier
+                     .fillMaxWidth()
+@@ -174,7 +137,7 @@
+                 ) {
+                     Text(
+                         text = "💬",
+-                        fontSize = 14.sp
++                        fontSize = 14. sp
+                     )
+                     Spacer(modifier = Modifier.width(4.dp))
+                     Text(
+@@ -191,7 +154,7 @@
+                     modifier = Modifier
+                         .clip(RoundedCornerShape(8.dp))
+                         .clickable { onLike(post.id) }
+-                        .padding(horizontal = 8.dp, vertical = 4.dp)
++                        .padding(horizontal = 8.dp, vertical = 4. dp)
+                 ) {
+                     Text(
+                         text = "👍",
+@@ -199,7 +162,7 @@
+                     )
+                     Spacer(modifier = Modifier.width(4.dp))
+                     Text(
+-                        text = "${post.likesCount}",
++                        text = "${post. likesCount}",
+                         fontSize = 12.sp,
+                         color = TextSecondary,
+                         fontWeight = FontWeight.Medium
+@@ -221,7 +184,7 @@
+                         text = "${post.savesCount}",
+                         fontSize = 12.sp,
+                         color = TextSecondary,
+-                        fontWeight = FontWeight.Medium
++                        fontWeight = FontWeight. Medium
+                     )
+                 }
+ 
+@@ -251,6 +214,39 @@
+     }
+ }
+ 
++/**
++ * Botón de acción reutilizable (opcional - si quieres usar iconos de Material)
++ */
++@Composable
++private fun ActionButton(
++    icon: ImageVector,
++    count: Int,
++    tint: Color,
++    onClick: () -> Unit
++) {
++    Row(
++        verticalAlignment = Alignment.CenterVertically,
++        modifier = Modifier
++            .clip(RoundedCornerShape(8.dp))
++            .clickable(onClick = onClick)
++            .padding(horizontal = 8.dp, vertical = 4. dp)
++    ) {
++        Icon(
++            imageVector = icon,
++            contentDescription = null,
++            tint = tint,
++            modifier = Modifier.size(18.dp)
++        )
++        Spacer(modifier = Modifier.width(4.dp))
++        Text(
++            text = count.toString(),
++            fontSize = 12.sp,
++            color = TextSecondary,
++            fontWeight = FontWeight.Medium
++        )
++    }
++}
++
+ /**
+  * Obtiene icono y color según categoría
+  */
+Index: app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityViewModel.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.aprendejapones.presentation.screens.community\r\n\r\nimport androidx.lifecycle.ViewModel\r\nimport androidx.lifecycle.viewModelScope\r\nimport com.example.aprendejapones.domain.model.FirestorePost\r\nimport com.example.aprendejapones.domain.repository.AuthRepository\r\nimport com.example.aprendejapones.domain.repository.CommunityRepository\r\nimport dagger.hilt.android.lifecycle.HiltViewModel\r\nimport kotlinx.coroutines.Job\r\nimport kotlinx.coroutines.flow.*\r\nimport kotlinx.coroutines.launch\r\nimport javax.inject.Inject\r\n\r\n/**\r\n * ViewModel para CommunityScreen\r\n */\r\n@HiltViewModel\r\nclass CommunityViewModel @Inject constructor(\r\n    private val communityRepository: CommunityRepository,\r\n    private val authRepository: AuthRepository\r\n) : ViewModel() {\r\n\r\n    private val _state = MutableStateFlow(CommunityState())\r\n    val state: StateFlow<CommunityState> = _state.asStateFlow()\r\n\r\n    private val _effects = MutableSharedFlow<CommunityEffect>()\r\n    val effects: SharedFlow<CommunityEffect> = _effects.asSharedFlow()\r\n\r\n    private var commentsJob: Job? = null\r\n\r\n    init {\r\n        // Listen to posts in real-time\r\n        viewModelScope.launch {\r\n            communityRepository.getPostsFlow()\r\n                .catch { error ->\r\n                    android.util.Log.e(\"CommunityViewModel\", \"Error loading posts\", error)\r\n                    _state.update { it.copy(error = error.message, isLoading = false) }\r\n                }\r\n                .collect { posts ->\r\n                    android.util.Log.d(\"CommunityViewModel\", \"Loaded ${posts.size} posts\")\r\n                    _state.update { it. copy(posts = posts, isLoading = false, isRefreshing = false) }\r\n                }\r\n        }\r\n\r\n        // Listen to saved posts in real-time\r\n        viewModelScope.launch {\r\n            communityRepository.getSavedPostsFlow()\r\n                .catch { /* Ignore errors for saved posts */ }\r\n                .collect { savedPosts ->\r\n                    _state.update { it.copy(savedPosts = savedPosts) }\r\n                }\r\n        }\r\n\r\n        // Listen to saved post IDs in real-time\r\n        viewModelScope.launch {\r\n            communityRepository.getSavedPostIdsFlow()\r\n                .catch { /* Ignore errors */ }\r\n                .collect { savedPostIds ->\r\n                    _state.update { it.copy(savedPostIds = savedPostIds) }\r\n                }\r\n        }\r\n    }\r\n\r\n    private fun loadUserInteractions() {\r\n        viewModelScope.launch {\r\n            val userId = authRepository.getCurrentUserId()\r\n            if (userId != null) {\r\n                // Load liked posts\r\n                launch {\r\n                    communityRepository. getUserLikedPostsFlow(userId)\r\n                        .collect { likedIds ->\r\n                            _state.update { it.copy(likedPostIds = likedIds. toSet()) }\r\n                        }\r\n                }\r\n\r\n                // Load saved posts\r\n                launch {\r\n                    communityRepository.getUserSavedPostsFlow(userId)\r\n                        .collect { savedIds ->\r\n                            _state.update { it.copy(savedPostIds = savedIds.toSet()) }\r\n                        }\r\n                }\r\n            }\r\n        }\r\n    }\r\n\r\n    fun onEvent(event: CommunityEvent) {\r\n        when (event) {\r\n            is CommunityEvent.LoadPosts -> { /* Posts are loaded automatically via Flow */ }\r\n            is CommunityEvent.CreatePost -> createPost(event.content, event.category)\r\n            is CommunityEvent.LikePost -> likePost(event.postId)\r\n            is CommunityEvent.SavePost -> savePost(event.postId)\r\n            is CommunityEvent.UnsavePost -> unsavePost(event.postId)\r\n            is CommunityEvent.ToggleSavePost -> toggleSavePost(event.postId)\r\n            is CommunityEvent.RefreshPosts -> refreshPosts()\r\n            is CommunityEvent.CreatePost -> createPost(event.content, event.category)\r\n            is CommunityEvent. LikePost -> toggleLike(event.postId)\r\n            is CommunityEvent. SavePost -> toggleSave(event.postId)\r\n            is CommunityEvent. FilterByCategory -> filterByCategory(event.category)\r\n            is CommunityEvent.DismissError -> dismissError()\r\n            is CommunityEvent.SelectPost -> selectPost(event.post)\r\n            is CommunityEvent.ClosePostDetail -> closePostDetail()\r\n            is CommunityEvent.UpdateNewCommentText -> updateNewCommentText(event.text)\r\n            is CommunityEvent.AddComment -> addComment(event.postId)\r\n            is CommunityEvent.SetFilterMode -> setFilterMode(event.mode)\r\n        }\r\n    }\r\n\r\n    private fun refreshPosts() {\r\n        _state.update { it.copy(isRefreshing = true) }\r\n        loadPosts()\r\n    }\r\n\r\n    private fun createPost(content: String, category: String) {\r\n        viewModelScope.launch {\r\n            android.util.Log.d(\"CommunityViewModel\", \"Creating post: content=$content, category=$category\")\r\n\r\n            val result = communityRepository.createPost(content, category)\r\n            result.onFailure { error ->\r\n                android. util.Log.e(\"CommunityViewModel\", \"Failed to create post\", error)\r\n                _effects.emit(CommunityEffect. ShowToast(\"Error: ${error.message}\"))\r\n            }\r\n            result.onSuccess {\r\n                android.util.Log. d(\"CommunityViewModel\", \"Post created successfully\")\r\n                _effects. emit(CommunityEffect.ShowToast(\"Post creado exitosamente\"))\r\n            }\r\n        }\r\n    }\r\n\r\n    private fun toggleLike(postId: String) {\r\n        viewModelScope.launch {\r\n            val isLiked = postId in _state.value.likedPostIds\r\n\r\n            android.util.Log.d(\"CommunityViewModel\", \"Toggle like for post: $postId, currently liked: $isLiked\")\r\n\r\n            val result = if (isLiked) {\r\n                communityRepository.unlikePost(postId)\r\n            } else {\r\n                communityRepository.likePost(postId)\r\n            }\r\n\r\n            result.onFailure { error ->\r\n                android.util.Log.e(\"CommunityViewModel\", \"Error toggling like\", error)\r\n                _effects.emit(CommunityEffect.ShowToast(\"Error: ${error.message}\"))\r\n            }\r\n        }\r\n    }\r\n\r\n    private fun refreshPosts() {\r\n        // Posts are already refreshed automatically via Flow\r\n    }\r\n\r\n    private fun savePost(postId: String) {\r\n        viewModelScope.launch {\r\n            val result = communityRepository.savePost(postId)\r\n            result.onSuccess {\r\n                _effects.emit(CommunityEffect.ShowToast(\"\uD83D\uDCCC Post guardado\"))\r\n            }\r\n            result.onFailure { error ->\r\n                _effects.emit(CommunityEffect.ShowToast(\"Error: ${error.message}\"))\r\n            }\r\n        }\r\n    }\r\n\r\n    private fun unsavePost(postId: String) {\r\n        viewModelScope.launch {\r\n            val result = communityRepository.unsavePost(postId)\r\n            result.onSuccess {\r\n                _effects.emit(CommunityEffect.ShowToast(\"Post eliminado de guardados\"))\r\n            }\r\n            result.onFailure { error ->\r\n                _effects.emit(CommunityEffect.ShowToast(\"Error: ${error.message}\"))\r\n            }\r\n        }\r\n    }\r\n\r\n    private fun toggleSavePost(postId: String) {\r\n        viewModelScope.launch {\r\n            val isSaved = _state.value.savedPostIds.contains(postId)\r\n            if (isSaved) {\r\n                unsavePost(postId)\r\n            } else {\r\n                savePost(postId)\r\n            }\r\n        }\r\n    }\r\n\r\n    private fun selectPost(post: FirestorePost) {\r\n        _state.update { \r\n            it.copy(\r\n                selectedPost = post, \r\n                showPostDetail = true,\r\n                isLoadingComments = true,\r\n                newCommentText = \"\"\r\n            ) \r\n        }\r\n        \r\n        // Cancel previous comments listener\r\n        commentsJob?.cancel()\r\n        \r\n        // Load comments for this post\r\n        commentsJob = viewModelScope.launch {\r\n            communityRepository.getCommentsFlow(post.id)\r\n                .catch { error ->\r\n                    _state.update { it.copy(isLoadingComments = false) }\r\n                }\r\n                .collect { comments ->\r\n                    _state.update { \r\n                        it.copy(\r\n                            selectedPostComments = comments,\r\n                            isLoadingComments = false\r\n                        ) \r\n                    }\r\n                }\r\n        }\r\n    }\r\n\r\n    private fun closePostDetail() {\r\n        commentsJob?.cancel()\r\n        _state.update { \r\n            it.copy(\r\n                selectedPost = null, \r\n                showPostDetail = false,\r\n                selectedPostComments = emptyList(),\r\n                newCommentText = \"\"\r\n            ) \r\n        }\r\n    }\r\n\r\n    private fun updateNewCommentText(text: String) {\r\n        _state.update { it.copy(newCommentText = text) }\r\n    }\r\n\r\n    private fun addComment(postId: String) {\r\n        val commentText = _state.value.newCommentText.trim()\r\n        if (commentText.isEmpty()) return\r\n\r\n        viewModelScope.launch {\r\n            val result = communityRepository.addComment(postId, commentText)\r\n            result.onSuccess {\r\n                _state.update { it.copy(newCommentText = \"\") }\r\n                _effects.emit(CommunityEffect.ShowToast(\"Comentario añadido\"))\r\n            }\r\n            result.onFailure { error ->\r\n                _effects.emit(CommunityEffect.ShowToast(\"Error: ${error.message}\"))\r\n            }\r\n        }\r\n    }\r\n\r\n    private fun setFilterMode(mode: PostFilterMode) {\r\n        _state.update { it.copy(filterMode = mode) }\r\n    }\r\n\r\n    private fun dismissError() {\r\n        _state.update { it.copy(error = null) }\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityViewModel.kt b/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityViewModel.kt
+--- a/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityViewModel.kt	(revision 2fa453a5df33e4358afdfedc2d78d787f7844c07)
++++ b/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityViewModel.kt	(date 1764294099745)
+@@ -38,7 +38,7 @@
+                 }
+                 .collect { posts ->
+                     android.util.Log.d("CommunityViewModel", "Loaded ${posts.size} posts")
+-                    _state.update { it. copy(posts = posts, isLoading = false, isRefreshing = false) }
++                    _state.update { it.copy(posts = posts, isLoading = false, isRefreshing = false) }
+                 }
+         }
+ 
+@@ -67,9 +67,9 @@
+             if (userId != null) {
+                 // Load liked posts
+                 launch {
+-                    communityRepository. getUserLikedPostsFlow(userId)
++                    communityRepository.getUserLikedPostsFlow(userId)
+                         .collect { likedIds ->
+-                            _state.update { it.copy(likedPostIds = likedIds. toSet()) }
++                            _state.update { it.copy(likedPostIds = likedIds.toSet()) }
+                         }
+                 }
+ 
+@@ -94,9 +94,9 @@
+             is CommunityEvent.ToggleSavePost -> toggleSavePost(event.postId)
+             is CommunityEvent.RefreshPosts -> refreshPosts()
+             is CommunityEvent.CreatePost -> createPost(event.content, event.category)
+-            is CommunityEvent. LikePost -> toggleLike(event.postId)
+-            is CommunityEvent. SavePost -> toggleSave(event.postId)
+-            is CommunityEvent. FilterByCategory -> filterByCategory(event.category)
++            is CommunityEvent.LikePost -> toggleLike(event.postId)
++            is CommunityEvent.SavePost -> toggleSavePost(event.postId)
++            is CommunityEvent.FilterByCategory -> filterByCategory(event.category)
+             is CommunityEvent.DismissError -> dismissError()
+             is CommunityEvent.SelectPost -> selectPost(event.post)
+             is CommunityEvent.ClosePostDetail -> closePostDetail()
+@@ -117,12 +117,12 @@
+ 
+             val result = communityRepository.createPost(content, category)
+             result.onFailure { error ->
+-                android. util.Log.e("CommunityViewModel", "Failed to create post", error)
+-                _effects.emit(CommunityEffect. ShowToast("Error: ${error.message}"))
++                android.util.Log.e("CommunityViewModel", "Failed to create post", error)
++                _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
+             }
+             result.onSuccess {
+-                android.util.Log. d("CommunityViewModel", "Post created successfully")
+-                _effects. emit(CommunityEffect.ShowToast("Post creado exitosamente"))
++                android.util.Log.d("CommunityViewModel", "Post created successfully")
++                _effects.emit(CommunityEffect.ShowToast("Post creado exitosamente"))
+             }
+         }
+     }
+Index: app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityScreen.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com. example.aprendejapones. presentation.screens.community\r\n\r\nimport androidx.compose.animation.*\r\nimport androidx.compose.foundation.background\r\nimport androidx.compose.foundation.border\r\nimport androidx.compose.foundation.clickable\r\nimport androidx.compose.foundation.layout.*\r\nimport androidx.compose.foundation.lazy.LazyColumn\r\nimport androidx.compose.foundation.lazy.items\r\nimport androidx.compose.foundation.shape.CircleShape\r\nimport androidx.compose.foundation.shape.RoundedCornerShape\r\nimport androidx.compose.material.icons.Icons\r\nimport androidx.compose.material.icons.filled.Close\r\nimport androidx.compose.material.icons.filled.Send\r\nimport androidx.compose.material3.*\r\nimport androidx.compose.runtime.*\r\nimport androidx.compose.ui.Alignment\r\nimport androidx.compose.ui.Modifier\r\nimport androidx.compose.ui.draw.clip\r\nimport androidx.compose.ui.text.font.FontWeight\r\nimport androidx.compose.ui.unit.dp\r\nimport androidx.compose.ui. unit.sp\r\nimport androidx.hilt.navigation.compose.hiltViewModel\r\nimport com.example.aprendejapones.domain.model.FirestoreComment\r\nimport com.example.aprendejapones.domain.model.FirestorePost\r\nimport com.example.aprendejapones.presentation.components.cards.PostCard\r\nimport com.example.aprendejapones.presentation.theme.*\r\nimport com.example.aprendejapones.utils.TimeUtils\r\n\r\n/**\r\n * Pantalla de Comunidad - Mejorada\r\n */\r\n@Composable\r\nfun CommunityScreen(\r\n    onNavigateToNewPost: () -> Unit = {},\r\n    onNavigateToPostDetail: (String) -> Unit = {},\r\n    onNavigateToProfile: (String) -> Unit = {},\r\n    viewModel: CommunityViewModel = hiltViewModel()\r\n) {\r\n    val state by viewModel.state.collectAsState()\r\n\r\n    // Manejar efectos\r\n    LaunchedEffect(Unit) {\r\n        viewModel.effects.collect { effect ->\r\n            when (effect) {\r\n                is CommunityEffect.NavigateToNewPost -> onNavigateToNewPost()\r\n                is CommunityEffect.NavigateToPostDetail -> {\r\n                    // Handled internally now\r\n                }\r\n                is CommunityEffect.ShowToast -> {\r\n                    // TODO: Show snackbar\r\n                }\r\n            }\r\n        }\r\n    }\r\n\r\n    // Mostrar error\r\n    state.error?.let { error ->\r\n        AlertDialog(\r\n            onDismissRequest = { viewModel. onEvent(CommunityEvent.DismissError) },\r\n            title = { Text(\"Error\") },\r\n            text = { Text(error) },\r\n            confirmButton = {\r\n                TextButton(onClick = { viewModel.onEvent(CommunityEvent.DismissError) }) {\r\n                    Text(\"OK\")\r\n                }\r\n            }\r\n        )\r\n    }\r\n\r\n    Box(modifier = Modifier.fillMaxSize()) {\r\n        CommunityContent(\r\n            state = state,\r\n            onEvent = viewModel::onEvent,\r\n            onNavigateToNewPost = onNavigateToNewPost\r\n        )\r\n\r\n        // Post detail overlay\r\n        AnimatedVisibility(\r\n            visible = state.showPostDetail,\r\n            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),\r\n            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()\r\n        ) {\r\n            state.selectedPost?.let { post ->\r\n                PostDetailOverlay(\r\n                    post = post,\r\n                    comments = state.selectedPostComments,\r\n                    isLoadingComments = state.isLoadingComments,\r\n                    newCommentText = state.newCommentText,\r\n                    isSaved = state.savedPostIds.contains(post.id),\r\n                    onClose = { viewModel.onEvent(CommunityEvent.ClosePostDetail) },\r\n                    onCommentTextChange = { viewModel.onEvent(CommunityEvent.UpdateNewCommentText(it)) },\r\n                    onSendComment = { viewModel.onEvent(CommunityEvent.AddComment(post.id)) },\r\n                    onLike = { viewModel.onEvent(CommunityEvent.LikePost(post.id)) },\r\n                    onSave = { viewModel.onEvent(CommunityEvent.ToggleSavePost(post.id)) }\r\n                )\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@OptIn(ExperimentalMaterial3Api::class)\r\n@Composable\r\nprivate fun CommunityContent(\r\n    state: CommunityState,\r\n    onEvent: (CommunityEvent) -> Unit,\r\n    onNavigateToNewPost: () -> Unit,\r\n    onNavigateToPostDetail: (String) -> Unit,\r\n    onNavigateToProfile: (String) -> Unit\r\n) {\r\n    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = state.isRefreshing)\r\n\r\n    if (state.isLoading && ! state.isRefreshing) {\r\n        Box(\r\n            modifier = Modifier. fillMaxSize(),\r\n            contentAlignment = Alignment.Center\r\n        ) {\r\n            CircularProgressIndicator(color = PrimaryGreen)\r\n        }\r\n        return\r\n    }\r\n\r\n    Column(\r\n        modifier = Modifier\r\n            .fillMaxSize()\r\n            .background(BackgroundGray)\r\n    ) {\r\n        // Header mejorado\r\n        CommunityHeader(\r\n            filterMode = state.filterMode,\r\n            onFilterChange = { onEvent(CommunityEvent.SetFilterMode(it)) },\r\n            onNewPost = onNavigateToNewPost\r\n        )\r\n\r\n        // Posts list\r\n        val displayPosts = when (state.filterMode) {\r\n            PostFilterMode.ALL_POSTS -> state.posts\r\n            PostFilterMode.SAVED_POSTS -> state.savedPosts\r\n        }\r\n\r\n        if (displayPosts.isEmpty()) {\r\n            EmptyPostsMessage(filterMode = state.filterMode)\r\n        } else {\r\n            LazyColumn(\r\n                modifier = Modifier.fillMaxSize(),\r\n                contentPadding = PaddingValues(16.dp),\r\n                verticalArrangement = Arrangement.spacedBy(12.dp)\r\n            ) {\r\n                items(displayPosts, key = { it.id }) { post ->\r\n                    PostCard(\r\n                        post = post,\r\n                        isSaved = state.savedPostIds.contains(post.id),\r\n                        onLike = { postId -> onEvent(CommunityEvent.LikePost(postId)) },\r\n                        onSave = { postId -> onEvent(CommunityEvent.ToggleSavePost(postId)) },\r\n                        onCommentClick = { onEvent(CommunityEvent.SelectPost(it)) }\r\n                    )\r\n                }\r\n                \r\n                // Bottom spacing for navigation bar\r\n                item {\r\n                    Spacer(modifier = Modifier.height(60.dp))\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun CommunityHeader(\r\n    filterMode: PostFilterMode,\r\n    onFilterChange: (PostFilterMode) -> Unit,\r\n    onNewPost: () -> Unit\r\n) {\r\n    Surface(\r\n        modifier = Modifier.fillMaxWidth(),\r\n        color = SurfaceWhite,\r\n        shadowElevation = 2.dp\r\n    ) {\r\n        Column(\r\n            modifier = Modifier.padding(16.dp)\r\n        ) {\r\n            // Title row\r\n            Row(\r\n                modifier = Modifier.fillMaxWidth(),\r\n                horizontalArrangement = Arrangement.SpaceBetween,\r\n                verticalAlignment = Alignment.CenterVertically\r\n            ) {\r\n                Column {\r\n                    Text(\r\n                        text = \"\uD83D\uDCAC Comunidad\",\r\n                        fontSize = 22.sp,\r\n                        fontWeight = FontWeight.Bold,\r\n                        color = TextPrimary\r\n                    )\r\n                    Text(\r\n                        text = \"Comparte y aprende juntos\",\r\n                        fontSize = 12.sp,\r\n                        color = TextSecondary,\r\n                        modifier = Modifier.padding(top = 2.dp)\r\n                    )\r\n                }\r\n\r\n                // New post button\r\n                Button(\r\n                    onClick = onNewPost,\r\n                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryGreen),\r\n                    shape = RoundedCornerShape(20.dp),\r\n                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)\r\n                ) {\r\n                    Text(\r\n                        text = \"+ Publicar\",\r\n                        color = SurfaceWhite,\r\n                        fontWeight = FontWeight.SemiBold,\r\n                        fontSize = 13.sp\r\n                    )\r\n                }\r\n            }\r\n\r\n            Spacer(modifier = Modifier.height(12.dp))\r\n\r\n            // Filter tabs\r\n            Row(\r\n                modifier = Modifier.fillMaxWidth(),\r\n                horizontalArrangement = Arrangement.spacedBy(8.dp)\r\n            ) {\r\n                FilterTab(\r\n                    text = \"\uD83D\uDCCB Todos\",\r\n                    isSelected = filterMode == PostFilterMode.ALL_POSTS,\r\n                    onClick = { onFilterChange(PostFilterMode.ALL_POSTS) }\r\n                )\r\n                FilterTab(\r\n                    text = \"\uD83D\uDCCC Guardados\",\r\n                    isSelected = filterMode == PostFilterMode.SAVED_POSTS,\r\n                    onClick = { onFilterChange(PostFilterMode.SAVED_POSTS) }\r\n                )\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun FilterTab(\r\n    text: String,\r\n    isSelected: Boolean,\r\n    onClick: () -> Unit\r\n) {\r\n    Box(\r\n        modifier = Modifier\r\n            .clip(RoundedCornerShape(20.dp))\r\n            .background(if (isSelected) PrimaryGreen else SurfaceGray)\r\n            .clickable(onClick = onClick)\r\n            .padding(horizontal = 16.dp, vertical = 8.dp)\r\n    ) {\r\n        Text(\r\n            text = text,\r\n            fontSize = 13.sp,\r\n            fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,\r\n            color = if (isSelected) SurfaceWhite else TextSecondary\r\n        )\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun EmptyPostsMessage(filterMode: PostFilterMode) {\r\n    Box(\r\n        modifier = Modifier.fillMaxSize(),\r\n        contentAlignment = Alignment.Center\r\n    ) {\r\n        Column(\r\n            horizontalAlignment = Alignment.CenterHorizontally,\r\n            modifier = Modifier.padding(32.dp)\r\n        ) {\r\n            Text(\r\n                text = when (filterMode) {\r\n                    PostFilterMode.ALL_POSTS -> \"\uD83D\uDCDD\"\r\n                    PostFilterMode.SAVED_POSTS -> \"\uD83D\uDCCC\"\r\n                },\r\n                fontSize = 48.sp\r\n            )\r\n            Spacer(modifier = Modifier.height(16.dp))\r\n            Text(\r\n                text = when (filterMode) {\r\n                    PostFilterMode.ALL_POSTS -> \"No hay publicaciones aún\"\r\n                    PostFilterMode.SAVED_POSTS -> \"No tienes posts guardados\"\r\n                },\r\n                fontSize = 16.sp,\r\n                fontWeight = FontWeight.Medium,\r\n                color = TextPrimary\r\n            )\r\n            Text(\r\n                text = when (filterMode) {\r\n                    PostFilterMode.ALL_POSTS -> \"¡Sé el primero en publicar!\"\r\n                    PostFilterMode.SAVED_POSTS -> \"Guarda posts para verlos después\"\r\n                },\r\n                fontSize = 13.sp,\r\n                color = TextSecondary,\r\n                modifier = Modifier.padding(top = 4.dp)\r\n            )\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun PostDetailOverlay(\r\n    post: FirestorePost,\r\n    comments: List<FirestoreComment>,\r\n    isLoadingComments: Boolean,\r\n    newCommentText: String,\r\n    isSaved: Boolean,\r\n    onClose: () -> Unit,\r\n    onCommentTextChange: (String) -> Unit,\r\n    onSendComment: () -> Unit,\r\n    onLike: () -> Unit,\r\n    onSave: () -> Unit\r\n) {\r\n    Surface(\r\n        modifier = Modifier.fillMaxSize(),\r\n        color = SurfaceWhite\r\n    ) {\r\n        Column(modifier = Modifier.fillMaxSize()) {\r\n            // Header\r\n            Row(\r\n                modifier = Modifier\r\n                    .fillMaxWidth()\r\n                    .background(SurfaceWhite)\r\n                    .padding(16.dp),\r\n                horizontalArrangement = Arrangement.SpaceBetween,\r\n                verticalAlignment = Alignment.CenterVertically\r\n            ) {\r\n                Text(\r\n                    text = \"Publicación\",\r\n                    fontSize = 18.sp,\r\n                    fontWeight = FontWeight.Bold,\r\n                    color = TextPrimary\r\n                )\r\n                IconButton(onClick = onClose) {\r\n                    Icon(\r\n                        imageVector = Icons.Default.Close,\r\n                        contentDescription = \"Cerrar\",\r\n                        tint = TextPrimary\r\n                    )\r\n                }\r\n            }\r\n\r\n            Divider(color = BorderLight)\r\n\r\n            // Content\r\n            LazyColumn(\r\n                modifier = Modifier\r\n                    .weight(1f)\r\n                    .fillMaxWidth()\r\n            ) {\r\n                // Post content\r\n                item {\r\n                    PostDetailContent(\r\n                        post = post,\r\n                        isSaved = isSaved,\r\n                        onLike = onLike,\r\n                        onSave = onSave\r\n                    )\r\n                }\r\n\r\n                // Comments header\r\n                item {\r\n                    Row(\r\n                        modifier = Modifier\r\n                            .fillMaxWidth()\r\n                            .background(BackgroundGray)\r\n                            .padding(horizontal = 16.dp, vertical = 12.dp),\r\n                        verticalAlignment = Alignment.CenterVertically\r\n                    ) {\r\n                        Text(\r\n                            text = \"\uD83D\uDCAC Comentarios\",\r\n                            fontSize = 14.sp,\r\n                            fontWeight = FontWeight.SemiBold,\r\n                            color = TextPrimary\r\n                        )\r\n                        Text(\r\n                            text = \" (${comments.size})\",\r\n                            fontSize = 14.sp,\r\n                            color = TextSecondary\r\n                        )\r\n                    }\r\n                }\r\n\r\n                // Comments\r\n                if (isLoadingComments) {\r\n                    item {\r\n                        Box(\r\n                            modifier = Modifier\r\n                                .fillMaxWidth()\r\n                                .padding(32.dp),\r\n                            contentAlignment = Alignment.Center\r\n                        ) {\r\n                            CircularProgressIndicator(\r\n                                color = PrimaryGreen,\r\n                                modifier = Modifier.size(24.dp)\r\n                            )\r\n                        }\r\n                    }\r\n                } else if (comments.isEmpty()) {\r\n                    item {\r\n                        Box(\r\n                            modifier = Modifier\r\n                                .fillMaxWidth()\r\n                                .padding(32.dp),\r\n                            contentAlignment = Alignment.Center\r\n                        ) {\r\n                            Column(horizontalAlignment = Alignment.CenterHorizontally) {\r\n                                Text(\r\n                                    text = \"\uD83D\uDCAD\",\r\n                                    fontSize = 32.sp\r\n                                )\r\n                                Text(\r\n                                    text = \"No hay comentarios aún\",\r\n                                    fontSize = 13.sp,\r\n                                    color = TextSecondary,\r\n                                    modifier = Modifier.padding(top = 8.dp)\r\n                                )\r\n                                Text(\r\n                                    text = \"¡Sé el primero en comentar!\",\r\n                                    fontSize = 12.sp,\r\n                                    color = TextTertiary\r\n                                )\r\n                            }\r\n                        }\r\n                    }\r\n                } else {\r\n                    items(comments) { comment ->\r\n                        CommentItem(comment = comment)\r\n                    }\r\n                }\r\n\r\n                // Bottom spacing\r\n                item {\r\n                    Spacer(modifier = Modifier.height(80.dp))\r\n                }\r\n            }\r\n\r\n            // Comment input\r\n            CommentInputBar(\r\n                text = newCommentText,\r\n                onTextChange = onCommentTextChange,\r\n                onSend = onSendComment\r\n            )\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun PostDetailContent(\r\n    post: FirestorePost,\r\n    isSaved: Boolean,\r\n    onLike: () -> Unit,\r\n    onSave: () -> Unit\r\n) {\r\n    Column(\r\n        modifier = Modifier\r\n            .fillMaxWidth()\r\n            .background(SurfaceWhite)\r\n            .padding(16.dp)\r\n    ) {\r\n        // Author info\r\n        Row(\r\n            verticalAlignment = Alignment.CenterVertically,\r\n            modifier = Modifier.padding(bottom = 12.dp)\r\n        ) {\r\n            Box(\r\n                modifier = Modifier\r\n                    .size(48.dp)\r\n                    .border(2.dp, PrimaryGreen, CircleShape)\r\n                    .background(PrimaryGreenLight, CircleShape),\r\n                contentAlignment = Alignment.Center\r\n            ) {\r\n                Text(\r\n                    text = post.authorName.firstOrNull()?.uppercase() ?: \"?\",\r\n                    fontWeight = FontWeight.Bold,\r\n                    color = PrimaryGreen,\r\n                    fontSize = 20.sp\r\n                )\r\n            }\r\n\r\n            Column(modifier = Modifier.padding(start = 12.dp)) {\r\n                Text(\r\n                    text = post.authorName,\r\n                    fontSize = 16.sp,\r\n                    fontWeight = FontWeight.SemiBold,\r\n                    color = TextPrimary\r\n                )\r\n                Row(\r\n                    verticalAlignment = Alignment.CenterVertically,\r\n                    horizontalArrangement = Arrangement.spacedBy(6.dp)\r\n                ) {\r\n                    Text(\r\n                        text = TimeUtils.formatRelativeTime(post.createdAt),\r\n                        fontSize = 12.sp,\r\n                        color = TextTertiary\r\n                    )\r\n                    if (post.category.isNotEmpty() && post.category != \"General\") {\r\n                        Text(text = \"•\", fontSize = 12.sp, color = TextTertiary)\r\n                        Text(\r\n                            text = post.category,\r\n                            fontSize = 12.sp,\r\n                            color = PrimaryGreen,\r\n                            fontWeight = FontWeight.Medium\r\n                        )\r\n                    }\r\n                }\r\n            }\r\n\r\n        // Content\r\n        Text(\r\n            text = post.content,\r\n            fontSize = 15.sp,\r\n            color = TextPrimary,\r\n            lineHeight = 22.sp,\r\n            modifier = Modifier.padding(bottom = 16.dp)\r\n        )\r\n\r\n        // Stats\r\n        Row(\r\n            modifier = Modifier.fillMaxWidth(),\r\n            horizontalArrangement = Arrangement.SpaceAround\r\n        ) {\r\n            StatItem(emoji = \"\uD83D\uDC4D\", count = post.likesCount, label = \"Me gusta\", onClick = onLike)\r\n            StatItem(emoji = \"\uD83D\uDCAC\", count = post.commentsCount, label = \"Comentarios\")\r\n            StatItem(emoji = \"\uD83D\uDD16\", count = post.savesCount, label = \"Guardados\")\r\n            StatItem(\r\n                emoji = if (isSaved) \"\uD83D\uDCCC\" else \"\uD83D\uDCCD\",\r\n                count = null,\r\n                label = if (isSaved) \"Guardado\" else \"Guardar\",\r\n                onClick = onSave,\r\n                isHighlighted = isSaved\r\n            )\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun StatItem(\r\n    emoji: String,\r\n    count: Int?,\r\n    label: String,\r\n    onClick: (() -> Unit)? = null,\r\n    isHighlighted: Boolean = false\r\n) {\r\n    Column(\r\n        horizontalAlignment = Alignment.CenterHorizontally,\r\n        modifier = Modifier\r\n            .clip(RoundedCornerShape(8.dp))\r\n            .then(\r\n                if (onClick != null) Modifier.clickable(onClick = onClick)\r\n                else Modifier\r\n            )\r\n            .background(if (isHighlighted) PrimaryGreenLight else SurfaceGray)\r\n            .padding(horizontal = 12.dp, vertical = 8.dp)\r\n    ) {\r\n        Row(verticalAlignment = Alignment.CenterVertically) {\r\n            Text(text = emoji, fontSize = 16.sp)\r\n            if (count != null) {\r\n                Spacer(modifier = Modifier.width(4.dp))\r\n                Text(\r\n                    text = \"$count\",\r\n                    fontSize = 14.sp,\r\n                    fontWeight = FontWeight.SemiBold,\r\n                    color = if (isHighlighted) PrimaryGreen else TextPrimary\r\n                )\r\n            }\r\n        }\r\n        Text(\r\n            text = label,\r\n            fontSize = 10.sp,\r\n            color = if (isHighlighted) PrimaryGreen else TextSecondary,\r\n            modifier = Modifier.padding(top = 2.dp)\r\n        )\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun CommentItem(comment: FirestoreComment) {\r\n    Row(\r\n        modifier = Modifier\r\n            .fillMaxWidth()\r\n            .padding(horizontal = 16.dp, vertical = 10.dp)\r\n    ) {\r\n        // Avatar\r\n        Box(\r\n            modifier = Modifier\r\n                .size(36.dp)\r\n                .background(PrimaryGreenLight, CircleShape)\r\n                .border(1.dp, PrimaryGreen, CircleShape),\r\n            contentAlignment = Alignment.Center\r\n        ) {\r\n            Text(\r\n                text = comment.authorName.firstOrNull()?.uppercase() ?: \"?\",\r\n                fontWeight = FontWeight.Bold,\r\n                color = PrimaryGreen,\r\n                fontSize = 14.sp\r\n            )\r\n        }\r\n\r\n        Column(\r\n            modifier = Modifier\r\n                .padding(start = 10.dp)\r\n                .weight(1f)\r\n        ) {\r\n            Row(\r\n                verticalAlignment = Alignment.CenterVertically,\r\n                horizontalArrangement = Arrangement.spacedBy(8.dp)\r\n            ) {\r\n                Text(\r\n                    text = comment.authorName,\r\n                    fontSize = 13.sp,\r\n                    fontWeight = FontWeight.SemiBold,\r\n                    color = TextPrimary\r\n                )\r\n                Text(\r\n                    text = TimeUtils.formatRelativeTime(comment.createdAt),\r\n                    fontSize = 11.sp,\r\n                    color = TextTertiary\r\n                )\r\n            }\r\n            Text(\r\n                text = comment.content,\r\n                fontSize = 13.sp,\r\n                color = TextPrimary,\r\n                lineHeight = 18.sp,\r\n                modifier = Modifier.padding(top = 4.dp)\r\n            )\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun CommentInputBar(\r\n    text: String,\r\n    onTextChange: (String) -> Unit,\r\n    onSend: () -> Unit\r\n) {\r\n    Surface(\r\n        modifier = Modifier.fillMaxWidth(),\r\n        color = SurfaceWhite,\r\n        shadowElevation = 8.dp\r\n    ) {\r\n        Row(\r\n            modifier = Modifier\r\n                .fillMaxWidth()\r\n                .padding(12.dp),\r\n            verticalAlignment = Alignment.CenterVertically\r\n        ) {\r\n            OutlinedTextField(\r\n                value = text,\r\n                onValueChange = onTextChange,\r\n                placeholder = {\r\n                    Text(\r\n                        text = \"Escribe un comentario...\",\r\n                        fontSize = 14.sp,\r\n                        color = TextTertiary\r\n                    )\r\n                },\r\n                modifier = Modifier.weight(1f),\r\n                shape = RoundedCornerShape(24.dp),\r\n                colors = OutlinedTextFieldDefaults.colors(\r\n                    focusedBorderColor = PrimaryGreen,\r\n                    unfocusedBorderColor = BorderGray\r\n                ),\r\n                maxLines = 3\r\n            )\r\n\r\n            Spacer(modifier = Modifier.width(8.dp))\r\n\r\n            IconButton(\r\n                onClick = onSend,\r\n                enabled = text.isNotBlank(),\r\n                modifier = Modifier\r\n                    .size(44.dp)\r\n                    .background(\r\n                        if (text.isNotBlank()) PrimaryGreen else SurfaceGray,\r\n                        CircleShape\r\n                    )\r\n            ) {\r\n                Icon(\r\n                    imageVector = Icons.Default.Send,\r\n                    contentDescription = \"Enviar\",\r\n                    tint = if (text.isNotBlank()) SurfaceWhite else TextTertiary,\r\n                    modifier = Modifier.size(20.dp)\r\n                )\r\n            }\r\n\r\n            // Empty state\r\n            if (state.filteredPosts.isEmpty() && ! state.isLoading) {\r\n                item {\r\n                    EmptyState(\r\n                        modifier = Modifier.padding(32.dp)\r\n                    )\r\n                }\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun CommunityHeader() {\r\n    Box(\r\n        modifier = Modifier\r\n            .fillMaxWidth()\r\n            .background(SurfaceWhite)\r\n            .padding(20.dp),\r\n        contentAlignment = Alignment. Center\r\n    ) {\r\n        Column(horizontalAlignment = Alignment.CenterHorizontally) {\r\n            Text(\r\n                text = \"\uD83D\uDCAC Comunidad\",\r\n                fontSize = 20.sp,\r\n                fontWeight = FontWeight.Bold,\r\n                color = TextPrimary\r\n            )\r\n            Text(\r\n                text = \"Comparte y aprende juntos\",\r\n                fontSize = 11.sp,\r\n                color = TextSecondary,\r\n                modifier = Modifier.padding(top = 4.dp)\r\n            )\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun NewPostButton(\r\n    onClick: () -> Unit,\r\n    modifier: Modifier = Modifier\r\n) {\r\n    Button(\r\n        onClick = onClick,\r\n        modifier = modifier\r\n            .fillMaxWidth()\r\n            .border(2.dp, PrimaryGreen, RoundedCornerShape(8.dp)),\r\n        colors = ButtonDefaults. buttonColors(containerColor = PrimaryGreen),\r\n        shape = RoundedCornerShape(8.dp),\r\n        contentPadding = PaddingValues(14.dp)\r\n    ) {\r\n        Text(\r\n            text = \"+ Nueva Publicación\",\r\n            color = SurfaceWhite,\r\n            fontWeight = FontWeight.Bold,\r\n            fontSize = 14.sp\r\n        )\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun CategoryFilterTabs(\r\n    selectedCategory: String,\r\n    onCategorySelected: (String) -> Unit,\r\n    modifier: Modifier = Modifier\r\n) {\r\n    val categories = listOf(\r\n        \"Todos\",\r\n        \"General\",\r\n        \"Gramática\",\r\n        \"Vocabulario\",\r\n        \"Kanji\",\r\n        \"Pronunciación\",\r\n        \"Cultura\"\r\n    )\r\n\r\n    ScrollableTabRow(\r\n        selectedTabIndex = categories.indexOf(selectedCategory),\r\n        modifier = modifier,\r\n        edgePadding = 0. dp,\r\n        containerColor = androidx.compose.ui.graphics.Color.Transparent,\r\n        indicator = {}\r\n    ) {\r\n        categories. forEach { category ->\r\n            val isSelected = category == selectedCategory\r\n            Tab(\r\n                selected = isSelected,\r\n                onClick = { onCategorySelected(category) },\r\n                modifier = Modifier\r\n                    .padding(end = 8.dp)\r\n                    .border(\r\n                        width = 2.dp,\r\n                        color = if (isSelected) PrimaryGreen else BorderGray,\r\n                        shape = RoundedCornerShape(20.dp)\r\n                    )\r\n                    .background(\r\n                        color = if (isSelected) PrimaryGreenLight else SurfaceWhite,\r\n                        shape = RoundedCornerShape(20.dp)\r\n                    )\r\n            ) {\r\n                Text(\r\n                    text = category,\r\n                    fontSize = 12.sp,\r\n                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,\r\n                    color = if (isSelected) PrimaryGreen else TextSecondary,\r\n                    modifier = Modifier. padding(horizontal = 16.dp, vertical = 8.dp)\r\n                )\r\n            }\r\n        }\r\n    }\r\n}\r\n\r\n@Composable\r\nprivate fun EmptyState(modifier: Modifier = Modifier) {\r\n    Column(\r\n        modifier = modifier. fillMaxWidth(),\r\n        horizontalAlignment = Alignment.CenterHorizontally\r\n    ) {\r\n        Text(\"\uD83D\uDCED\", fontSize = 64.sp)\r\n        Text(\r\n            text = \"No hay publicaciones\",\r\n            fontSize = 16.sp,\r\n            fontWeight = FontWeight.Bold,\r\n            color = TextSecondary,\r\n            modifier = Modifier.padding(top = 16.dp)\r\n        )\r\n        Text(\r\n            text = \"Sé el primero en compartir algo\",\r\n            fontSize = 12.sp,\r\n            color = TextTertiary,\r\n            modifier = Modifier.padding(top = 4.dp)\r\n        )\r\n    }\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityScreen.kt b/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityScreen.kt
+--- a/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityScreen.kt	(revision 2fa453a5df33e4358afdfedc2d78d787f7844c07)
++++ b/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityScreen.kt	(date 1764293976812)
+@@ -1,4 +1,4 @@
+-package com. example.aprendejapones. presentation.screens.community
++package com.example.aprendejapones.presentation.screens.community
+ 
+ import androidx.compose.animation.*
+ import androidx.compose.foundation.background
+@@ -19,7 +19,7 @@
+ import androidx.compose.ui.draw.clip
+ import androidx.compose.ui.text.font.FontWeight
+ import androidx.compose.ui.unit.dp
+-import androidx.compose.ui. unit.sp
++import androidx.compose.ui.unit.sp
+ import androidx.hilt.navigation.compose.hiltViewModel
+ import com.example.aprendejapones.domain.model.FirestoreComment
+ import com.example.aprendejapones.domain.model.FirestorePost
+@@ -50,6 +50,8 @@
+                 is CommunityEffect.ShowToast -> {
+                     // TODO: Show snackbar
+                 }
++
++                is CommunityEffect.NavigateToUserProfile -> TODO()
+             }
+         }
+     }
+@@ -57,7 +59,7 @@
+     // Mostrar error
+     state.error?.let { error ->
+         AlertDialog(
+-            onDismissRequest = { viewModel. onEvent(CommunityEvent.DismissError) },
++            onDismissRequest = { viewModel.onEvent(CommunityEvent.DismissError) },
+             title = { Text("Error") },
+             text = { Text(error) },
+             confirmButton = {
+@@ -99,20 +101,15 @@
+     }
+ }
+ 
+-@OptIn(ExperimentalMaterial3Api::class)
+ @Composable
+ private fun CommunityContent(
+     state: CommunityState,
+     onEvent: (CommunityEvent) -> Unit,
+-    onNavigateToNewPost: () -> Unit,
+-    onNavigateToPostDetail: (String) -> Unit,
+-    onNavigateToProfile: (String) -> Unit
++    onNavigateToNewPost: () -> Unit
+ ) {
+-    val swipeRefreshState = rememberSwipeRefreshState(isRefreshing = state.isRefreshing)
+-
+-    if (state.isLoading && ! state.isRefreshing) {
++    if (state.isLoading && !state.isRefreshing) {
+         Box(
+-            modifier = Modifier. fillMaxSize(),
++            modifier = Modifier.fillMaxSize(),
+             contentAlignment = Alignment.Center
+         ) {
+             CircularProgressIndicator(color = PrimaryGreen)
+@@ -155,7 +152,7 @@
+                         onCommentClick = { onEvent(CommunityEvent.SelectPost(it)) }
+                     )
+                 }
+-                
++
+                 // Bottom spacing for navigation bar
+                 item {
+                     Spacer(modifier = Modifier.height(60.dp))
+@@ -418,7 +415,7 @@
+                                     modifier = Modifier.padding(top = 8.dp)
+                                 )
+                                 Text(
+-                                    text = "¡Sé el primero en comentar!",
++                                    text = "¡Sé el primero en comentar! ",
+                                     fontSize = 12.sp,
+                                     color = TextTertiary
+                                 )
+@@ -473,7 +470,7 @@
+                 contentAlignment = Alignment.Center
+             ) {
+                 Text(
+-                    text = post.authorName.firstOrNull()?.uppercase() ?: "?",
++                    text = post.authorName.firstOrNull()?.uppercase() ?: "? ",
+                     fontWeight = FontWeight.Bold,
+                     color = PrimaryGreen,
+                     fontSize = 20.sp
+@@ -507,6 +504,7 @@
+                     }
+                 }
+             }
++        }
+ 
+         // Content
+         Text(
+@@ -686,139 +684,6 @@
+                     modifier = Modifier.size(20.dp)
+                 )
+             }
+-
+-            // Empty state
+-            if (state.filteredPosts.isEmpty() && ! state.isLoading) {
+-                item {
+-                    EmptyState(
+-                        modifier = Modifier.padding(32.dp)
+-                    )
+-                }
+-            }
+-        }
+-    }
+-}
+-
+-@Composable
+-private fun CommunityHeader() {
+-    Box(
+-        modifier = Modifier
+-            .fillMaxWidth()
+-            .background(SurfaceWhite)
+-            .padding(20.dp),
+-        contentAlignment = Alignment. Center
+-    ) {
+-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+-            Text(
+-                text = "💬 Comunidad",
+-                fontSize = 20.sp,
+-                fontWeight = FontWeight.Bold,
+-                color = TextPrimary
+-            )
+-            Text(
+-                text = "Comparte y aprende juntos",
+-                fontSize = 11.sp,
+-                color = TextSecondary,
+-                modifier = Modifier.padding(top = 4.dp)
+-            )
+-        }
+-    }
+-}
+-
+-@Composable
+-private fun NewPostButton(
+-    onClick: () -> Unit,
+-    modifier: Modifier = Modifier
+-) {
+-    Button(
+-        onClick = onClick,
+-        modifier = modifier
+-            .fillMaxWidth()
+-            .border(2.dp, PrimaryGreen, RoundedCornerShape(8.dp)),
+-        colors = ButtonDefaults. buttonColors(containerColor = PrimaryGreen),
+-        shape = RoundedCornerShape(8.dp),
+-        contentPadding = PaddingValues(14.dp)
+-    ) {
+-        Text(
+-            text = "+ Nueva Publicación",
+-            color = SurfaceWhite,
+-            fontWeight = FontWeight.Bold,
+-            fontSize = 14.sp
+-        )
+-    }
+-}
+-
+-@Composable
+-private fun CategoryFilterTabs(
+-    selectedCategory: String,
+-    onCategorySelected: (String) -> Unit,
+-    modifier: Modifier = Modifier
+-) {
+-    val categories = listOf(
+-        "Todos",
+-        "General",
+-        "Gramática",
+-        "Vocabulario",
+-        "Kanji",
+-        "Pronunciación",
+-        "Cultura"
+-    )
+-
+-    ScrollableTabRow(
+-        selectedTabIndex = categories.indexOf(selectedCategory),
+-        modifier = modifier,
+-        edgePadding = 0. dp,
+-        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+-        indicator = {}
+-    ) {
+-        categories. forEach { category ->
+-            val isSelected = category == selectedCategory
+-            Tab(
+-                selected = isSelected,
+-                onClick = { onCategorySelected(category) },
+-                modifier = Modifier
+-                    .padding(end = 8.dp)
+-                    .border(
+-                        width = 2.dp,
+-                        color = if (isSelected) PrimaryGreen else BorderGray,
+-                        shape = RoundedCornerShape(20.dp)
+-                    )
+-                    .background(
+-                        color = if (isSelected) PrimaryGreenLight else SurfaceWhite,
+-                        shape = RoundedCornerShape(20.dp)
+-                    )
+-            ) {
+-                Text(
+-                    text = category,
+-                    fontSize = 12.sp,
+-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+-                    color = if (isSelected) PrimaryGreen else TextSecondary,
+-                    modifier = Modifier. padding(horizontal = 16.dp, vertical = 8.dp)
+-                )
+-            }
+-        }
+-    }
+-}
+-
+-@Composable
+-private fun EmptyState(modifier: Modifier = Modifier) {
+-    Column(
+-        modifier = modifier. fillMaxWidth(),
+-        horizontalAlignment = Alignment.CenterHorizontally
+-    ) {
+-        Text("📭", fontSize = 64.sp)
+-        Text(
+-            text = "No hay publicaciones",
+-            fontSize = 16.sp,
+-            fontWeight = FontWeight.Bold,
+-            color = TextSecondary,
+-            modifier = Modifier.padding(top = 16.dp)
+-        )
+-        Text(
+-            text = "Sé el primero en compartir algo",
+-            fontSize = 12.sp,
+-            color = TextTertiary,
+-            modifier = Modifier.padding(top = 4.dp)
+-        )
++        }
+     }
+ }
+\ No newline at end of file
+Index: app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityState.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+>package com.example.aprendejapones.presentation.screens.community\r\n\r\nimport com.example.aprendejapones.domain.model.FirestoreComment\r\nimport com.example.aprendejapones.domain.model.FirestorePost\r\n\r\n/**\r\n * Filter mode for community posts\r\n */\r\nenum class PostFilterMode {\r\n    ALL_POSTS,\r\n    SAVED_POSTS\r\n}\r\n\r\n/**\r\n * Estado de la pantalla Community\r\n */\r\ndata class CommunityState(\r\n    val posts: List<FirestorePost> = emptyList(),\r\n    val savedPosts: List<FirestorePost> = emptyList(),\r\n    val savedPostIds: Set<String> = emptySet(),\r\n    val filterMode: PostFilterMode = PostFilterMode.ALL_POSTS,\r\n    val isLoading: Boolean = true,\r\n    val error: String? = null,\r\n    // Post detail/comments state\r\n    val selectedPost: FirestorePost? = null,\r\n    val selectedPostComments: List<FirestoreComment> = emptyList(),\r\n    val isLoadingComments: Boolean = false,\r\n    val showPostDetail: Boolean = false,\r\n    val newCommentText: String = \"\"\r\n)\r\n\r\n/**\r\n * Eventos de Community\r\n */\r\nsealed class CommunityEvent {\r\n    object LoadPosts : CommunityEvent()\r\n    object RefreshPosts : CommunityEvent()\r\n    data class CreatePost(val content: String, val category: String) : CommunityEvent()\r\n    data class LikePost(val postId: String) : CommunityEvent()\r\n    data class SavePost(val postId: String) : CommunityEvent()\r\n    data class UnsavePost(val postId: String) : CommunityEvent()\r\n    data class ToggleSavePost(val postId: String) : CommunityEvent()\r\n    data class SelectPost(val post: FirestorePost) : CommunityEvent()\r\n    object ClosePostDetail : CommunityEvent()\r\n    data class UpdateNewCommentText(val text: String) : CommunityEvent()\r\n    data class AddComment(val postId: String) : CommunityEvent()\r\n    data class SetFilterMode(val mode: PostFilterMode) : CommunityEvent()\r\n    object DismissError : CommunityEvent()\r\n}\r\n\r\n/**\r\n * Efectos secundarios\r\n */\r\nsealed class CommunityEffect {\r\n    object NavigateToNewPost : CommunityEffect()\r\n    data class NavigateToPostDetail(val postId: String) : CommunityEffect()\r\n    data class NavigateToUserProfile(val userId: String) : CommunityEffect()\r\n    data class ShowToast(val message: String) : CommunityEffect()\r\n}
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityState.kt b/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityState.kt
+--- a/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityState.kt	(revision 2fa453a5df33e4358afdfedc2d78d787f7844c07)
++++ b/app/src/main/java/com/example/aprendejapones/presentation/screens/community/CommunityState.kt	(date 1764294038823)
+@@ -24,6 +24,7 @@
+     // Post detail/comments state
+     val selectedPost: FirestorePost? = null,
+     val selectedPostComments: List<FirestoreComment> = emptyList(),
++    val isRefreshing: Boolean = false,
+     val isLoadingComments: Boolean = false,
+     val showPostDetail: Boolean = false,
+     val newCommentText: String = ""

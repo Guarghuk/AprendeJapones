@@ -526,7 +526,7 @@ private fun PostDetailContent(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
-                        text = TimeUtils.formatRelativeTime(post.createdAt.time),
+                        text = TimeUtils.formatRelativeTime(post.createdAt),
                         fontSize = 12.sp,
                         color = TextTertiary
                     )
@@ -655,7 +655,7 @@ private fun CommentItem(
                     modifier = Modifier.clickable { onNavigateToProfile(comment.authorId) }
                 )
                 Text(
-                    text = TimeUtils.formatRelativeTime(comment.createdAt.time),
+                    text = TimeUtils.formatRelativeTime(comment.createdAt),
                     fontSize = 11.sp,
                     color = TextTertiary
                 )
