@@ -9,6 +9,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -25,83 +26,182 @@ import java.util.Locale
 fun PostCard(
     modifier: Modifier = Modifier,
     post: FirestorePost,
+    isSaved: Boolean = false,
     onLike: (String) -> Unit = {},
-    onSave: (String) -> Unit = {}
+    onSave: (String) -> Unit = {},
+    onCommentClick: (FirestorePost) -> Unit = {}
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .border(2.dp, BorderGray, RoundedCornerShape(10.dp))
-            .background(SurfaceWhite, RoundedCornerShape(10.dp))
-            .padding(14.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .border(1.dp, BorderGray, RoundedCornerShape(12.dp))
+            .background(SurfaceWhite, RoundedCornerShape(12.dp))
+            .clickable { onCommentClick(post) }
+            .padding(16.dp)
     ) {
         Column {
             // Header del post
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 10.dp)
+                modifier = Modifier.padding(bottom = 12.dp)
             ) {
+                // Avatar
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .border(2.dp, PrimaryGreen, RoundedCornerShape(20.dp))
-                        .background(PrimaryGreenLight, RoundedCornerShape(20.dp)),
+                        .size(44.dp)
+                        .border(2.dp, PrimaryGreen, RoundedCornerShape(22.dp))
+                        .background(PrimaryGreenLight, RoundedCornerShape(22.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = post.authorName.firstOrNull()?.toString() ?: "?",
+                        text = post.authorName.firstOrNull()?.uppercase() ?: "?",
                         fontWeight = FontWeight.Bold,
                         color = PrimaryGreen,
-                        fontSize = 16.sp
+                        fontSize = 18.sp
                     )
                 }
 
                 Column(modifier = Modifier.padding(start = 12.dp)) {
                     Text(
                         text = post.authorName,
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
                         color = TextPrimary
                     )
-                    Text(
-                        text = formatTimestamp(post.createdAt),
-                        fontSize = 10.sp,
-                        color = TextTertiary
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = formatTimestamp(post.createdAt),
+                            fontSize = 11.sp,
+                            color = TextTertiary
+                        )
+                        if (post.category.isNotEmpty() && post.category != "General") {
+                            Text(
+                                text = "•",
+                                fontSize = 11.sp,
+                                color = TextTertiary
+                            )
+                            Text(
+                                text = post.category,
+                                fontSize = 11.sp,
+                                color = PrimaryGreen,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
                 }
             }
 
             // Contenido
             Text(
                 text = post.content,
-                fontSize = 12.sp,
+                fontSize = 14.sp,
                 color = TextPrimary,
-                lineHeight = 16.sp,
-                modifier = Modifier.padding(bottom = 10.dp)
+                lineHeight = 20.sp,
+                modifier = Modifier.padding(bottom = 14.dp)
+            )
+
+            // Divider
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(BorderLight)
             )
 
             // Acciones
             Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                modifier = Modifier.padding(top = 4.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp)
             ) {
-                Text(
-                    text = "💬 ${post.commentsCount} respuestas",
-                    fontSize = 10.sp,
-                    color = TextSecondary
-                )
-                Text(
-                    text = "👍 ${post.likesCount}",
-                    fontSize = 10.sp,
-                    color = TextSecondary,
-                    modifier = Modifier.clickable { onLike(post.id) }
-                )
-                Text(
-                    text = "📌 Guardar",
-                    fontSize = 10.sp,
-                    color = PrimaryGreen,
-                    modifier = Modifier.clickable { onSave(post.id) }
-                )
+                // Comments
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onCommentClick(post) }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "💬",
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "${post.commentsCount}",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                // Likes
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable { onLike(post.id) }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "👍",
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "${post.likesCount}",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                // Saves count display
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = "🔖",
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "${post.savesCount}",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                // Save button
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(if (isSaved) PrimaryGreenLight else SurfaceGray)
+                        .clickable { onSave(post.id) }
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = if (isSaved) "📌" else "📍",
+                        fontSize = 12.sp
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = if (isSaved) "Guardado" else "Guardar",
+                        fontSize = 11.sp,
+                        color = if (isSaved) PrimaryGreen else TextSecondary,
+                        fontWeight = if (isSaved) FontWeight.SemiBold else FontWeight.Medium
+                    )
+                }
             }
         }
     }

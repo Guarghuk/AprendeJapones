@@ -30,6 +30,7 @@ data class FirestorePost(
     val category: String = "General",
     val likesCount: Int = 0,
     val commentsCount: Int = 0,
+    val savesCount: Int = 0,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 )
@@ -48,6 +49,13 @@ data class FirestoreComment(
 
 // Like
 data class FirestoreLike(
+    val userId: String = "",
+    val postId: String = "",
+    val createdAt: Long = System.currentTimeMillis()
+)
+
+// Saved Post (Bookmark)
+data class FirestoreSavedPost(
     val userId: String = "",
     val postId: String = "",
     val createdAt: Long = System.currentTimeMillis()

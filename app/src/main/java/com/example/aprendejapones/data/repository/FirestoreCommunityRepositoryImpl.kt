@@ -3,6 +3,7 @@ package com.example.aprendejapones.data.repository
 import com.example.aprendejapones.domain.model.FirestoreComment
 import com.example.aprendejapones.domain.model.FirestoreLike
 import com.example.aprendejapones.domain.model.FirestorePost
+import com.example.aprendejapones.domain.model.FirestoreSavedPost
 import com.example.aprendejapones.domain.model.FirestoreUser
 import com.example.aprendejapones.domain.repository.AuthRepository
 import com.example.aprendejapones.domain.repository.CommunityRepository
@@ -13,6 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -220,11 +223,153 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     comment.reference.delete().await()
                 }
 
+                // Delete associated saved posts
+                val savedPosts = firestore.collection("saved_posts")
+                    .whereEqualTo("postId", postId)
+                    .get()
+                    .await()
+                
+                for (savedPost in savedPosts.documents) {
+                    savedPost.reference.delete().await()
+                }
+
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
             }
         }
+    }
+
+    override suspend fun savePost(postId: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val userId = authRepository.getCurrentUserId()
+                    ?: return@withContext Result.failure(Exception("Not logged in"))
+
+                val savedPostId = "${userId}_${postId}"
+
+                // Create saved post record
+                val savedPost = FirestoreSavedPost(userId, postId, System.currentTimeMillis())
+                firestore.collection("saved_posts").document(savedPostId).set(savedPost).await()
+
+                // Increment saves counter on post
+                firestore.collection("posts").document(postId)
+                    .update("savesCount", FieldValue.increment(1))
+                    .await()
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun unsavePost(postId: String): Result<Unit> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val userId = authRepository.getCurrentUserId()
+                    ?: return@withContext Result.failure(Exception("Not logged in"))
+
+                val savedPostId = "${userId}_${postId}"
+
+                // Delete saved post record
+                firestore.collection("saved_posts").document(savedPostId).delete().await()
+
+                // Decrement saves counter on post
+                firestore.collection("posts").document(postId)
+                    .update("savesCount", FieldValue.increment(-1))
+                    .await()
+
+                Result.success(Unit)
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+
+    override suspend fun hasUserSavedPost(postId: String): Boolean = withContext(Dispatchers.IO) {
+        try {
+            val userId = authRepository.getCurrentUserId() ?: return@withContext false
+            val savedPostId = "${userId}_${postId}"
+            val doc = firestore.collection("saved_posts").document(savedPostId).get().await()
+            doc.exists()
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    override fun getSavedPostsFlow(): Flow<List<FirestorePost>> = callbackFlow {
+        val userId = authRepository.getCurrentUserId()
+        if (userId == null) {
+            trySend(emptyList())
+            awaitClose { }
+            return@callbackFlow
+        }
+
+        val listener = firestore.collection("saved_posts")
+            .whereEqualTo("userId", userId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+
+                val postIds = snapshot?.documents?.mapNotNull {
+                    it.getString("postId")
+                } ?: emptyList()
+
+                if (postIds.isEmpty()) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+
+                // Fetch the actual posts
+                firestore.collection("posts")
+                    .whereIn("__name__", postIds.take(10)) // Firestore limit
+                    .get()
+                    .addOnSuccessListener { postsSnapshot ->
+                        val posts = postsSnapshot.documents.mapNotNull {
+                            it.toObject(FirestorePost::class.java)?.copy(id = it.id)
+                        }
+                        // Sort by saved order
+                        val sortedPosts = postIds.mapNotNull { postId ->
+                            posts.find { it.id == postId }
+                        }
+                        trySend(sortedPosts)
+                    }
+                    .addOnFailureListener {
+                        trySend(emptyList())
+                    }
+            }
+
+        awaitClose { listener.remove() }
+    }
+
+    override fun getSavedPostIdsFlow(): Flow<Set<String>> = callbackFlow {
+        val userId = authRepository.getCurrentUserId()
+        if (userId == null) {
+            trySend(emptySet())
+            awaitClose { }
+            return@callbackFlow
+        }
+
+        val listener = firestore.collection("saved_posts")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    trySend(emptySet())
+                    return@addSnapshotListener
+                }
+
+                val postIds = snapshot?.documents?.mapNotNull {
+                    it.getString("postId")
+                }?.toSet() ?: emptySet()
+
+                trySend(postIds)
+            }
+
+        awaitClose { listener.remove() }
     }
 
     /**
