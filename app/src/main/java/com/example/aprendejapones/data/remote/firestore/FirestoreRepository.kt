@@ -71,14 +71,18 @@ class FirestoreRepository(
     suspend fun getPosts(): List<Publicaciones> {
         val snapshot = postsCollection().orderBy("fecha_publicacion", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .get().await()
-        return snapshot.documents.map { it.toObject(Publicaciones::class.java)!!.copy(id_publicacion = it.id) }
+        return snapshot.documents.mapNotNull { doc ->
+            doc.toObject(Publicaciones::class.java)?.copy(id_publicacion = doc.id)
+        }
     }
 
     // Cargar comentarios de una publicación
     suspend fun getComments(postId: String): List<Comentarios> {
         val snapshot = postsCollection().document(postId).collection("comments")
             .orderBy("fecha_publicacion", com.google.firebase.firestore.Query.Direction.ASCENDING).get().await()
-        return snapshot.documents.map { it.toObject(Comentarios::class.java)!!.copy(id_comentario = it.id, id_publicacion = postId) }
+        return snapshot.documents.mapNotNull { doc ->
+            doc.toObject(Comentarios::class.java)?.copy(id_comentario = doc.id, id_publicacion = postId)
+        }
     }
 
     // Crear publicación (cliente debe asegurarse id_autor == auth.uid)
