@@ -11,9 +11,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.aprendejapones.R
 import com.example.aprendejapones.domain.model.FirestorePost
 import com.example.aprendejapones.presentation.theme.*
 import com.example.aprendejapones.utils.TimeUtils
@@ -28,8 +30,12 @@ fun PostCard(
     isSaved: Boolean = false,
     onLike: (String) -> Unit = {},
     onSave: (String) -> Unit = {},
-    onCommentClick: (FirestorePost) -> Unit = {}
+    onCommentClick: (FirestorePost) -> Unit = {},
+    onProfileClick: (String) -> Unit = {}
 ) {
+    val savedLabel = stringResource(R.string.saved_label)
+    val saveLabel = stringResource(R.string.save_label)
+    
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -43,7 +49,9 @@ fun PostCard(
             // Header del post
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 12.dp)
+                modifier = Modifier
+                    .padding(bottom = 12.dp)
+                    .clickable { onProfileClick(post.authorId) }
             ) {
                 // Avatar
                 Box(
@@ -195,7 +203,7 @@ fun PostCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = if (isSaved) "Guardado" else "Guardar",
+                        text = if (isSaved) savedLabel else saveLabel,
                         fontSize = 11.sp,
                         color = if (isSaved) PrimaryGreen else TextSecondary,
                         fontWeight = if (isSaved) FontWeight.SemiBold else FontWeight.Medium

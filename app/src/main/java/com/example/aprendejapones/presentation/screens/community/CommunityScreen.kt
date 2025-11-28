@@ -17,10 +17,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.aprendejapones.R
 import com.example.aprendejapones.domain.model.FirestoreComment
 import com.example.aprendejapones.domain.model.FirestorePost
 import com.example.aprendejapones.presentation.components.cards.PostCard
@@ -38,6 +40,7 @@ fun CommunityScreen(
     viewModel: CommunityViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     // Manejar efectos
     LaunchedEffect(Unit) {
@@ -48,52 +51,67 @@ fun CommunityScreen(
                     // Handled internally now
                 }
                 is CommunityEffect.ShowToast -> {
-                    // TODO: Show snackbar
+                    snackbarHostState.showSnackbar(
+                        message = effect.message,
+                        duration = SnackbarDuration.Short
+                    )
                 }
             }
         }
     }
 
     // Mostrar error
+    val errorTitle = stringResource(R.string.error_title)
+    val okText = stringResource(R.string.ok)
     state.error?.let { error ->
         AlertDialog(
             onDismissRequest = { viewModel.onEvent(CommunityEvent.DismissError) },
-            title = { Text("Error") },
+            title = { Text(errorTitle) },
             text = { Text(error) },
             confirmButton = {
                 TextButton(onClick = { viewModel.onEvent(CommunityEvent.DismissError) }) {
-                    Text("OK")
+                    Text(okText)
                 }
             }
         )
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        CommunityContent(
-            state = state,
-            onEvent = viewModel::onEvent,
-            onNavigateToNewPost = onNavigateToNewPost
-        )
-
-        // Post detail overlay
-        AnimatedVisibility(
-            visible = state.showPostDetail,
-            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
-            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+    Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
-            state.selectedPost?.let { post ->
-                PostDetailOverlay(
-                    post = post,
-                    comments = state.selectedPostComments,
-                    isLoadingComments = state.isLoadingComments,
-                    newCommentText = state.newCommentText,
-                    isSaved = state.savedPostIds.contains(post.id),
-                    onClose = { viewModel.onEvent(CommunityEvent.ClosePostDetail) },
-                    onCommentTextChange = { viewModel.onEvent(CommunityEvent.UpdateNewCommentText(it)) },
-                    onSendComment = { viewModel.onEvent(CommunityEvent.AddComment(post.id)) },
-                    onLike = { viewModel.onEvent(CommunityEvent.LikePost(post.id)) },
-                    onSave = { viewModel.onEvent(CommunityEvent.ToggleSavePost(post.id)) }
-                )
+            CommunityContent(
+                state = state,
+                onEvent = viewModel::onEvent,
+                onNavigateToNewPost = onNavigateToNewPost,
+                onNavigateToProfile = onNavigateToProfile
+            )
+
+            // Post detail overlay
+            AnimatedVisibility(
+                visible = state.showPostDetail,
+                enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+            ) {
+                state.selectedPost?.let { post ->
+                    PostDetailOverlay(
+                        post = post,
+                        comments = state.selectedPostComments,
+                        isLoadingComments = state.isLoadingComments,
+                        newCommentText = state.newCommentText,
+                        isSaved = state.savedPostIds.contains(post.id),
+                        onClose = { viewModel.onEvent(CommunityEvent.ClosePostDetail) },
+                        onCommentTextChange = { viewModel.onEvent(CommunityEvent.UpdateNewCommentText(it)) },
+                        onSendComment = { viewModel.onEvent(CommunityEvent.AddComment(post.id)) },
+                        onLike = { viewModel.onEvent(CommunityEvent.LikePost(post.id)) },
+                        onSave = { viewModel.onEvent(CommunityEvent.ToggleSavePost(post.id)) },
+                        onNavigateToProfile = onNavigateToProfile
+                    )
+                }
             }
         }
     }
@@ -104,7 +122,8 @@ fun CommunityScreen(
 private fun CommunityContent(
     state: CommunityState,
     onEvent: (CommunityEvent) -> Unit,
-    onNavigateToNewPost: () -> Unit
+    onNavigateToNewPost: () -> Unit,
+    onNavigateToProfile: (String) -> Unit
 ) {
     if (state.isLoading && !state.isRefreshing) {
         Box(
@@ -148,7 +167,8 @@ private fun CommunityContent(
                         isSaved = state.savedPostIds.contains(post.id),
                         onLike = { postId -> onEvent(CommunityEvent.LikePost(postId)) },
                         onSave = { postId -> onEvent(CommunityEvent.ToggleSavePost(postId)) },
-                        onCommentClick = { onEvent(CommunityEvent.SelectPost(it)) }
+                        onCommentClick = { onEvent(CommunityEvent.SelectPost(it)) },
+                        onProfileClick = onNavigateToProfile
                     )
                 }
                 
@@ -183,13 +203,13 @@ private fun CommunityHeader(
             ) {
                 Column {
                     Text(
-                        text = "💬 Comunidad",
+                        text = stringResource(R.string.community_title),
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
                     Text(
-                        text = "Comparte y aprende juntos",
+                        text = stringResource(R.string.community_subtitle),
                         fontSize = 12.sp,
                         color = TextSecondary,
                         modifier = Modifier.padding(top = 2.dp)
@@ -204,7 +224,7 @@ private fun CommunityHeader(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Text(
-                        text = "+ Publicar",
+                        text = stringResource(R.string.new_post_button),
                         color = SurfaceWhite,
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.sp
@@ -220,12 +240,12 @@ private fun CommunityHeader(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 FilterTab(
-                    text = "📋 Todos",
+                    text = stringResource(R.string.filter_all),
                     isSelected = filterMode == PostFilterMode.ALL_POSTS,
                     onClick = { onFilterChange(PostFilterMode.ALL_POSTS) }
                 )
                 FilterTab(
-                    text = "📌 Guardados",
+                    text = stringResource(R.string.filter_saved),
                     isSelected = filterMode == PostFilterMode.SAVED_POSTS,
                     onClick = { onFilterChange(PostFilterMode.SAVED_POSTS) }
                 )
@@ -276,8 +296,8 @@ private fun EmptyPostsMessage(filterMode: PostFilterMode) {
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = when (filterMode) {
-                    PostFilterMode.ALL_POSTS -> "No hay publicaciones aún"
-                    PostFilterMode.SAVED_POSTS -> "No tienes posts guardados"
+                    PostFilterMode.ALL_POSTS -> stringResource(R.string.no_posts_yet)
+                    PostFilterMode.SAVED_POSTS -> stringResource(R.string.no_saved_posts)
                 },
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
@@ -285,8 +305,8 @@ private fun EmptyPostsMessage(filterMode: PostFilterMode) {
             )
             Text(
                 text = when (filterMode) {
-                    PostFilterMode.ALL_POSTS -> "¡Sé el primero en publicar!"
-                    PostFilterMode.SAVED_POSTS -> "Guarda posts para verlos después"
+                    PostFilterMode.ALL_POSTS -> stringResource(R.string.be_first_to_post)
+                    PostFilterMode.SAVED_POSTS -> stringResource(R.string.save_posts_for_later)
                 },
                 fontSize = 13.sp,
                 color = TextSecondary,
@@ -307,8 +327,11 @@ private fun PostDetailOverlay(
     onCommentTextChange: (String) -> Unit,
     onSendComment: () -> Unit,
     onLike: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    onNavigateToProfile: (String) -> Unit = {}
 ) {
+    val closeContentDescription = stringResource(R.string.close)
+    
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = SurfaceWhite
@@ -324,7 +347,7 @@ private fun PostDetailOverlay(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Publicación",
+                    text = stringResource(R.string.publication_title),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
@@ -332,13 +355,13 @@ private fun PostDetailOverlay(
                 IconButton(onClick = onClose) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Cerrar",
+                        contentDescription = closeContentDescription,
                         tint = TextPrimary
                     )
                 }
             }
 
-            Divider(color = BorderLight)
+            HorizontalDivider(color = BorderLight)
 
             // Content
             LazyColumn(
@@ -352,7 +375,8 @@ private fun PostDetailOverlay(
                         post = post,
                         isSaved = isSaved,
                         onLike = onLike,
-                        onSave = onSave
+                        onSave = onSave,
+                        onNavigateToProfile = onNavigateToProfile
                     )
                 }
 
@@ -366,7 +390,7 @@ private fun PostDetailOverlay(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "💬 Comentarios",
+                            text = stringResource(R.string.comments_title),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = TextPrimary
@@ -408,13 +432,13 @@ private fun PostDetailOverlay(
                                     fontSize = 32.sp
                                 )
                                 Text(
-                                    text = "No hay comentarios aún",
+                                    text = stringResource(R.string.no_comments_yet),
                                     fontSize = 13.sp,
                                     color = TextSecondary,
                                     modifier = Modifier.padding(top = 8.dp)
                                 )
                                 Text(
-                                    text = "¡Sé el primero en comentar!",
+                                    text = stringResource(R.string.be_first_to_comment),
                                     fontSize = 12.sp,
                                     color = TextTertiary
                                 )
@@ -423,7 +447,10 @@ private fun PostDetailOverlay(
                     }
                 } else {
                     items(comments) { comment ->
-                        CommentItem(comment = comment)
+                        CommentItem(
+                            comment = comment,
+                            onNavigateToProfile = onNavigateToProfile
+                        )
                     }
                 }
 
@@ -448,8 +475,15 @@ private fun PostDetailContent(
     post: FirestorePost,
     isSaved: Boolean,
     onLike: () -> Unit,
-    onSave: () -> Unit
+    onSave: () -> Unit,
+    onNavigateToProfile: (String) -> Unit = {}
 ) {
+    val likesLabel = stringResource(R.string.likes_label)
+    val commentsLabel = stringResource(R.string.comments_label)
+    val savesLabel = stringResource(R.string.saves_label)
+    val savedLabel = stringResource(R.string.saved_label)
+    val saveLabel = stringResource(R.string.save_label)
+    
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -459,7 +493,9 @@ private fun PostDetailContent(
         // Author info
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier
+                .padding(bottom = 12.dp)
+                .clickable { onNavigateToProfile(post.authorId) }
         ) {
             Box(
                 modifier = Modifier
@@ -503,6 +539,7 @@ private fun PostDetailContent(
                     }
                 }
             }
+        }
 
         // Content
         Text(
@@ -518,13 +555,13 @@ private fun PostDetailContent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            StatItem(emoji = "👍", count = post.likesCount, label = "Me gusta", onClick = onLike)
-            StatItem(emoji = "💬", count = post.commentsCount, label = "Comentarios")
-            StatItem(emoji = "🔖", count = post.savesCount, label = "Guardados")
+            StatItem(emoji = "👍", count = post.likesCount, label = likesLabel, onClick = onLike)
+            StatItem(emoji = "💬", count = post.commentsCount, label = commentsLabel)
+            StatItem(emoji = "🔖", count = post.savesCount, label = savesLabel)
             StatItem(
                 emoji = if (isSaved) "📌" else "📍",
                 count = null,
-                label = if (isSaved) "Guardado" else "Guardar",
+                label = if (isSaved) savedLabel else saveLabel,
                 onClick = onSave,
                 isHighlighted = isSaved
             )
@@ -573,7 +610,10 @@ private fun StatItem(
 }
 
 @Composable
-private fun CommentItem(comment: FirestoreComment) {
+private fun CommentItem(
+    comment: FirestoreComment,
+    onNavigateToProfile: (String) -> Unit = {}
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -584,7 +624,8 @@ private fun CommentItem(comment: FirestoreComment) {
             modifier = Modifier
                 .size(36.dp)
                 .background(PrimaryGreenLight, CircleShape)
-                .border(1.dp, PrimaryGreen, CircleShape),
+                .border(1.dp, PrimaryGreen, CircleShape)
+                .clickable { onNavigateToProfile(comment.authorId) },
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -608,7 +649,8 @@ private fun CommentItem(comment: FirestoreComment) {
                     text = comment.authorName,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
+                    color = TextPrimary,
+                    modifier = Modifier.clickable { onNavigateToProfile(comment.authorId) }
                 )
                 Text(
                     text = TimeUtils.formatRelativeTime(comment.createdAt),
@@ -633,6 +675,9 @@ private fun CommentInputBar(
     onTextChange: (String) -> Unit,
     onSend: () -> Unit
 ) {
+    val sendContentDescription = stringResource(R.string.send)
+    val placeholderText = stringResource(R.string.comment_placeholder)
+    
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = SurfaceWhite,
@@ -649,7 +694,7 @@ private fun CommentInputBar(
                 onValueChange = onTextChange,
                 placeholder = {
                     Text(
-                        text = "Escribe un comentario...",
+                        text = placeholderText,
                         fontSize = 14.sp,
                         color = TextTertiary
                     )
@@ -677,19 +722,10 @@ private fun CommentInputBar(
             ) {
                 Icon(
                     imageVector = Icons.Default.Send,
-                    contentDescription = "Enviar",
+                    contentDescription = sendContentDescription,
                     tint = if (text.isNotBlank()) SurfaceWhite else TextTertiary,
                     modifier = Modifier.size(20.dp)
                 )
-            }
-
-            // Empty state
-            if (state.filteredPosts.isEmpty() && ! state.isLoading) {
-                item {
-                    EmptyState(
-                        modifier = Modifier.padding(32.dp)
-                    )
-                }
             }
         }
     }

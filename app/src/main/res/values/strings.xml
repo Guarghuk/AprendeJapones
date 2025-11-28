@@ -1,3 +1,30 @@
 <resources>
     <string name="app_name">AprendeJapones</string>
+    
+    <!-- Common -->
+    <string name="error_title">Error</string>
+    <string name="ok">OK</string>
+    <string name="close">Cerrar</string>
+    <string name="send">Enviar</string>
+    
+    <!-- Community Screen -->
+    <string name="community_title">💬 Comunidad</string>
+    <string name="community_subtitle">Comparte y aprende juntos</string>
+    <string name="new_post_button">+ Publicar</string>
+    <string name="filter_all">📋 Todos</string>
+    <string name="filter_saved">📌 Guardados</string>
+    <string name="publication_title">Publicación</string>
+    <string name="comments_title">💬 Comentarios</string>
+    <string name="comment_placeholder">Escribe un comentario…</string>
+    <string name="no_comments_yet">No hay comentarios aún</string>
+    <string name="be_first_to_comment">¡Sé el primero en comentar!</string>
+    <string name="no_posts_yet">No hay publicaciones aún</string>
+    <string name="be_first_to_post">¡Sé el primero en publicar!</string>
+    <string name="no_saved_posts">No tienes posts guardados</string>
+    <string name="save_posts_for_later">Guarda posts para verlos después</string>
+    <string name="likes_label">Me gusta</string>
+    <string name="comments_label">Comentarios</string>
+    <string name="saves_label">Guardados</string>
+    <string name="saved_label">Guardado</string>
+    <string name="save_label">Guardar</string>
 </resources>
