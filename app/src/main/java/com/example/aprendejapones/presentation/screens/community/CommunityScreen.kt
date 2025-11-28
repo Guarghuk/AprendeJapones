@@ -115,6 +115,17 @@ fun CommunityScreen(
                     )
                 }
             }
+
+            // Category selector dialog
+            if (state.showCategoryDialog) {
+                CategorySelectorDialog(
+                    selectedCategory = state.selectedCategory,
+                    onCategorySelected = { category ->
+                        viewModel.onEvent(CommunityEvent.SelectCategory(category))
+                    },
+                    onDismiss = { viewModel.onEvent(CommunityEvent.HideCategoryDialog) }
+                )
+            }
         }
     }
 }
@@ -145,14 +156,23 @@ private fun CommunityContent(
         // Header mejorado
         CommunityHeader(
             filterMode = state.filterMode,
+            selectedCategory = state.selectedCategory,
             onFilterChange = { onEvent(CommunityEvent.SetFilterMode(it)) },
-            onNewPost = onNavigateToNewPost
+            onNewPost = onNavigateToNewPost,
+            onShowCategoryDialog = { onEvent(CommunityEvent.ShowCategoryDialog) }
         )
 
         // Posts list
         val displayPosts = when (state.filterMode) {
             PostFilterMode.ALL_POSTS -> state.posts
             PostFilterMode.SAVED_POSTS -> state.savedPosts
+            PostFilterMode.BY_CATEGORY -> {
+                if (state.selectedCategory == "Todos") {
+                    state.posts
+                } else {
+                    state.posts.filter { it.category == state.selectedCategory }
+                }
+            }
         }
 
         if (displayPosts.isEmpty()) {
@@ -186,8 +206,10 @@ private fun CommunityContent(
 @Composable
 private fun CommunityHeader(
     filterMode: PostFilterMode,
+    selectedCategory: String,
     onFilterChange: (PostFilterMode) -> Unit,
-    onNewPost: () -> Unit
+    onNewPost: () -> Unit,
+    onShowCategoryDialog: () -> Unit
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -242,9 +264,9 @@ private fun CommunityHeader(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 FilterTab(
-                    text = stringResource(R.string.filter_all),
-                    isSelected = filterMode == PostFilterMode.ALL_POSTS,
-                    onClick = { onFilterChange(PostFilterMode.ALL_POSTS) }
+                    text = if (selectedCategory == "Todos") stringResource(R.string.filter_all) else selectedCategory,
+                    isSelected = filterMode == PostFilterMode.ALL_POSTS || filterMode == PostFilterMode.BY_CATEGORY,
+                    onClick = onShowCategoryDialog
                 )
                 FilterTab(
                     text = stringResource(R.string.filter_saved),
@@ -292,6 +314,7 @@ private fun EmptyPostsMessage(filterMode: PostFilterMode) {
                 text = when (filterMode) {
                     PostFilterMode.ALL_POSTS -> "📝"
                     PostFilterMode.SAVED_POSTS -> "📌"
+                    PostFilterMode.BY_CATEGORY -> "🔍"
                 },
                 fontSize = 48.sp
             )
@@ -300,6 +323,7 @@ private fun EmptyPostsMessage(filterMode: PostFilterMode) {
                 text = when (filterMode) {
                     PostFilterMode.ALL_POSTS -> stringResource(R.string.no_posts_yet)
                     PostFilterMode.SAVED_POSTS -> stringResource(R.string.no_saved_posts)
+                    PostFilterMode.BY_CATEGORY -> stringResource(R.string.no_posts_yet)
                 },
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
@@ -309,6 +333,7 @@ private fun EmptyPostsMessage(filterMode: PostFilterMode) {
                 text = when (filterMode) {
                     PostFilterMode.ALL_POSTS -> stringResource(R.string.be_first_to_post)
                     PostFilterMode.SAVED_POSTS -> stringResource(R.string.save_posts_for_later)
+                    PostFilterMode.BY_CATEGORY -> stringResource(R.string.be_first_to_post)
                 },
                 fontSize = 13.sp,
                 color = TextSecondary,
@@ -855,4 +880,68 @@ private fun EmptyState(modifier: Modifier = Modifier) {
             modifier = Modifier.padding(top = 4.dp)
         )
     }
+}
+
+@Composable
+private fun CategorySelectorDialog(
+    selectedCategory: String,
+    onCategorySelected: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Text(
+                text = "Seleccionar Categoría",
+                fontWeight = FontWeight.Bold
+            )
+        },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val categories = listOf(
+                    "Todos" to "📚",
+                    "General" to "💬",
+                    "Gramática" to "📖",
+                    "Vocabulario" to "📚",
+                    "Kanji" to "漢",
+                    "Pronunciación" to "🎤",
+                    "Cultura" to "🎌"
+                )
+                
+                categories.forEach { (category, icon) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(
+                                if (selectedCategory == category) PrimaryGreenLight else androidx.compose.ui.graphics.Color.Transparent
+                            )
+                            .clickable { onCategorySelected(category) }
+                            .padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = icon,
+                            fontSize = 20.sp,
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
+                        Text(
+                            text = category,
+                            fontSize = 14.sp,
+                            fontWeight = if (selectedCategory == category) FontWeight.Bold else FontWeight.Normal,
+                            color = if (selectedCategory == category) PrimaryGreen else TextPrimary
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cerrar", color = PrimaryGreen)
+            }
+        }
+    )
 }

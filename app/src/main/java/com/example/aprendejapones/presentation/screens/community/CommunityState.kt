@@ -8,7 +8,8 @@ import com.example.aprendejapones.domain.model.FirestorePost
  */
 enum class PostFilterMode {
     ALL_POSTS,
-    SAVED_POSTS
+    SAVED_POSTS,
+    BY_CATEGORY
 }
 
 /**
@@ -19,6 +20,8 @@ data class CommunityState(
     val savedPosts: List<FirestorePost> = emptyList(),
     val savedPostIds: Set<String> = emptySet(),
     val filterMode: PostFilterMode = PostFilterMode.ALL_POSTS,
+    val selectedCategory: String = "Todos",
+    val showCategoryDialog: Boolean = false,
     val isLoading: Boolean = true,
     val error: String? = null,
     // Post detail/comments state
@@ -46,6 +49,9 @@ sealed class CommunityEvent {
     data class UpdateNewCommentText(val text: String) : CommunityEvent()
     data class AddComment(val postId: String) : CommunityEvent()
     data class SetFilterMode(val mode: PostFilterMode) : CommunityEvent()
+    data class SelectCategory(val category: String) : CommunityEvent()
+    object ShowCategoryDialog : CommunityEvent()
+    object HideCategoryDialog : CommunityEvent()
     object DismissError : CommunityEvent()
 }
 
