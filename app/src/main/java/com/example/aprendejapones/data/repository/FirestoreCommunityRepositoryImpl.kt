@@ -83,6 +83,13 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 val userId = authRepository.getCurrentUserId()
                     ?: return@withContext Result.failure(Exception("Not logged in"))
 
+                // Verificar si el usuario ya dio like
+                val alreadyLiked = hasUserLikedPost(postId)
+                if (alreadyLiked) {
+                    android.util.Log.d("FirestoreCommunity", "User already liked this post: $postId")
+                    return@withContext Result.success(Unit)
+                }
+
                 val likeId = "${userId}_${postId}"
 
                 // Create like

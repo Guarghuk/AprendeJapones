@@ -94,6 +94,9 @@ class CommunityViewModel @Inject constructor(
             is CommunityEvent.UpdateNewCommentText -> updateNewCommentText(event.text)
             is CommunityEvent.AddComment -> addComment(event.postId)
             is CommunityEvent.SetFilterMode -> setFilterMode(event.mode)
+            is CommunityEvent.SelectCategory -> selectCategory(event.category)
+            is CommunityEvent.ShowCategoryDialog -> showCategoryDialog()
+            is CommunityEvent.HideCategoryDialog -> hideCategoryDialog()
         }
     }
 
@@ -237,6 +240,24 @@ class CommunityViewModel @Inject constructor(
 
     private fun setFilterMode(mode: PostFilterMode) {
         _state.update { it.copy(filterMode = mode) }
+    }
+
+    private fun selectCategory(category: String) {
+        _state.update { 
+            it.copy(
+                selectedCategory = category,
+                filterMode = if (category == "Todos") PostFilterMode.ALL_POSTS else PostFilterMode.BY_CATEGORY,
+                showCategoryDialog = false
+            ) 
+        }
+    }
+
+    private fun showCategoryDialog() {
+        _state.update { it.copy(showCategoryDialog = true) }
+    }
+
+    private fun hideCategoryDialog() {
+        _state.update { it.copy(showCategoryDialog = false) }
     }
 
     private fun dismissError() {
