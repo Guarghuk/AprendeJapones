@@ -96,8 +96,9 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     .collection("likes").document(userId)
                     .set(likeData).await()
 
-                // Note: contador_likes is now managed by Cloud Functions
-                // But we keep client-side update for backward compatibility
+                // TODO: Remove client-side counter update once Cloud Functions are deployed
+                // and verified to be working. Currently kept for backward compatibility
+                // during migration. Cloud Functions will handle contador_likes automatically.
                 firestore.collection("posts").document(postId)
                     .update("likesCount", FieldValue.increment(1))
                     .await()
@@ -122,8 +123,9 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     .collection("likes").document(userId)
                     .delete().await()
 
-                // Note: contador_likes is now managed by Cloud Functions
-                // But we keep client-side update for backward compatibility
+                // TODO: Remove client-side counter update once Cloud Functions are deployed
+                // and verified to be working. Currently kept for backward compatibility
+                // during migration. Cloud Functions will handle contador_likes automatically.
                 firestore.collection("posts").document(postId)
                     .update("likesCount", FieldValue.increment(-1))
                     .await()
@@ -158,8 +160,9 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 firestore.collection("posts").document(postId)
                     .collection("comments").add(commentData).await()
 
-                // Note: contador_comentarios is now managed by Cloud Functions
-                // But we keep client-side update for backward compatibility
+                // TODO: Remove client-side counter update once Cloud Functions are deployed
+                // and verified to be working. Currently kept for backward compatibility
+                // during migration. Cloud Functions will handle contador_comentarios automatically.
                 firestore.collection("posts").document(postId)
                     .update("commentsCount", FieldValue.increment(1))
                     .await()

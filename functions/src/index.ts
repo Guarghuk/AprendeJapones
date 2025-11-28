@@ -13,6 +13,16 @@ admin.initializeApp();
 
 const db = admin.firestore();
 
+// ============================================================
+// Configuration Constants
+// ============================================================
+
+/** XP required to level up */
+const XP_PER_LEVEL = 100;
+
+/** Maximum XP that can be added in a single call */
+const MAX_XP_PER_CALL = 1000;
+
 /**
  * Triggered when a comment is created in /posts/{postId}/comments/{commentId}
  * Increments contador_comentarios on the parent post
@@ -183,10 +193,10 @@ export const addXpToUser = functions.https.onCall(async (data, context) => {
   const xpToAdd = data.xp;
   
   // Validate input
-  if (typeof xpToAdd !== "number" || xpToAdd < 0 || xpToAdd > 1000) {
+  if (typeof xpToAdd !== "number" || xpToAdd < 0 || xpToAdd > MAX_XP_PER_CALL) {
     throw new functions.https.HttpsError(
       "invalid-argument",
-      "XP must be a number between 0 and 1000"
+      `XP must be a number between 0 and ${MAX_XP_PER_CALL}`
     );
   }
   
@@ -210,10 +220,10 @@ export const addXpToUser = functions.https.onCall(async (data, context) => {
       let newXp = currentXp + xpToAdd;
       let newLevel = currentLevel;
       
-      // Level up logic (100 XP per level)
-      while (newXp >= 100) {
+      // Level up logic
+      while (newXp >= XP_PER_LEVEL) {
         newLevel++;
-        newXp -= 100;
+        newXp -= XP_PER_LEVEL;
       }
       
       // Determine new rank based on level
