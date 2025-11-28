@@ -43,6 +43,9 @@ sealed class Screen(val route: String) {
     // ✅ Sincronización
     object Sync : Screen("sync")
 
+    // ✅ Tienda
+    object Shop : Screen("shop")
+
 }
 
 // ✅ Definir fuera de la clase para evitar problemas de inicialización

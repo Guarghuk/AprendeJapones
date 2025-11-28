@@ -34,6 +34,7 @@ import com.example.aprendejapones.presentation.screens.dailygoal.DailyGoalScreen
 import com.example.aprendejapones.presentation.screens.reminders.RemindersScreen
 import com.example.aprendejapones.presentation.screens.stats.StatsScreen
 import com.example.aprendejapones.presentation.screens.sync.SyncScreen
+import com.example.aprendejapones.presentation.screens.shop.ShopScreen
 
 /**
  * Composable principal que configura la navegación de la app con animaciones
@@ -175,6 +176,13 @@ fun KotodamaNavGraph(
                                 "help" -> navController.navigate(Screen.Help.route)
                                 "contact" -> navController.navigate(Screen.Contact.route)
                                 "language" -> navController.navigate(Screen.Language.route)
+                                "sync" -> navController.navigate(Screen.Sync.route)
+                                "shop" -> navController.navigate(Screen.Shop.route)
+                            }
+                        },
+                        onNavigateToLogin = {
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(Screen.Home.route) { inclusive = true }
                             }
                         }
                     )
@@ -195,6 +203,10 @@ fun KotodamaNavGraph(
 
                 composable(Screen.Sync.route) {
                     SyncScreen(onBack = { navController.popBackStack() })
+                }
+
+                composable(Screen.Shop.route) {
+                    ShopScreen(onBack = { navController.popBackStack() })
                 }
 
                 // ============ PANTALLAS SECUNDARIAS ============

@@ -71,10 +71,20 @@ class LessonRepositoryImpl @Inject constructor(
         return mutex.withLock {
             // Initialize if needed or if date changed
             if (dailyChallenge == null || dailyChallenge?.date != today) {
+                // Random difficulty each day
+                val difficulties = listOf(
+                    DailyChallengeState.Difficulty.EASY,
+                    DailyChallengeState.Difficulty.MEDIUM,
+                    DailyChallengeState.Difficulty.HARD,
+                    DailyChallengeState.Difficulty.EXTREME
+                )
+                val randomDifficulty = difficulties.random()
+                
                 dailyChallenge = DailyChallengeState(
                     date = today,
                     completed = 0,
-                    total = 5
+                    total = randomDifficulty.totalTasks,
+                    difficulty = randomDifficulty
                 )
             }
             dailyChallenge?.toDomain(calculateTimeRemaining())
@@ -109,10 +119,20 @@ class LessonRepositoryImpl @Inject constructor(
         
         mutex.withLock {
             if (dailyChallenge == null || dailyChallenge?.date != today) {
+                // Random difficulty each day
+                val difficulties = listOf(
+                    DailyChallengeState.Difficulty.EASY,
+                    DailyChallengeState.Difficulty.MEDIUM,
+                    DailyChallengeState.Difficulty.HARD,
+                    DailyChallengeState.Difficulty.EXTREME
+                )
+                val randomDifficulty = difficulties.random()
+                
                 dailyChallenge = DailyChallengeState(
                     date = today,
                     completed = 0,
-                    total = 5
+                    total = randomDifficulty.totalTasks,
+                    difficulty = randomDifficulty
                 )
             }
         }
@@ -138,15 +158,30 @@ class LessonRepositoryImpl @Inject constructor(
     private data class DailyChallengeState(
         val date: String,
         val completed: Int,
-        val total: Int
+        val total: Int,
+        val difficulty: Difficulty = Difficulty.MEDIUM
     ) {
+        enum class Difficulty(val totalTasks: Int, val xpReward: Int, val coinReward: Int, val displayName: String) {
+            EASY(3, 30, 10, "Fácil"),
+            MEDIUM(5, 50, 20, "Normal"),
+            HARD(7, 75, 35, "Difícil"),
+            EXTREME(10, 100, 50, "Extremo")
+        }
+        
         fun toDomain(timeRemaining: String): DailyChallenge {
             return DailyChallenge(
                 id = date,
                 completed = completed,
                 total = total,
                 timeRemaining = timeRemaining,
-                rewardXP = 50
+                rewardXP = difficulty.xpReward,
+                rewardCoins = difficulty.coinReward,
+                difficulty = when (difficulty) {
+                    Difficulty.EASY -> com.example.aprendejapones.domain.model.ChallengeDifficulty.EASY
+                    Difficulty.MEDIUM -> com.example.aprendejapones.domain.model.ChallengeDifficulty.MEDIUM
+                    Difficulty.HARD -> com.example.aprendejapones.domain.model.ChallengeDifficulty.HARD
+                    Difficulty.EXTREME -> com.example.aprendejapones.domain.model.ChallengeDifficulty.EXTREME
+                }
             )
         }
     }

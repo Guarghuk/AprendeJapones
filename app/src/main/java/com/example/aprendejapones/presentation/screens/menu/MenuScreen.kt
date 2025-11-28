@@ -24,6 +24,7 @@ import com.example.aprendejapones.presentation.theme.*
 @Composable
 fun MenuScreen(
     onNavigateToScreen: (String) -> Unit = {},
+    onNavigateToLogin: () -> Unit = {},
     viewModel: MenuViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -33,11 +34,9 @@ fun MenuScreen(
         viewModel.effects.collect { effect ->
             when (effect) {
                 is MenuEffect.NavigateToScreen -> onNavigateToScreen(effect.screen)
-                is MenuEffect.NavigateToLogin -> {
-                    // TODO: Navegar a login
-                }
+                is MenuEffect.NavigateToLogin -> onNavigateToLogin()
                 is MenuEffect.ShowToast -> {
-                    // TODO: Mostrar toast
+                    // Toast handled elsewhere
                 }
             }
         }
@@ -93,7 +92,8 @@ private fun MenuContent(
                 title = "Cuenta",
                 items = listOf(
                     MenuItem("👤", "Editar Perfil", "Nombre, avatar y más", "editProfile"),
-                    MenuItem("🔐", "Privacidad y Seguridad", "Contraseña y datos", "privacy")
+                    MenuItem("🔐", "Privacidad y Seguridad", "Contraseña y datos", "privacy"),
+                    MenuItem("☁️", "Sincronizar Datos", "Sincroniza con la nube", "sync")
                 ),
                 onItemClick = { screen -> onEvent(MenuEvent.NavigateToScreen(screen)) }
             )
@@ -104,7 +104,8 @@ private fun MenuContent(
                 items = listOf(
                     MenuItem("🎯", "Meta Diaria", "Actualmente: ${state.dailyGoalMinutes} min/día", "goal"),
                     MenuItem("🔔", "Recordatorios", "Configura notificaciones", "reminders"),
-                    MenuItem("📊", "Estadísticas Completas", "Ver todo tu progreso", "stats")
+                    MenuItem("📊", "Estadísticas Completas", "Ver todo tu progreso", "stats"),
+                    MenuItem("🛍️", "Tienda", "Compra escudos, insignias y más", "shop")
                 ),
                 onItemClick = { screen -> onEvent(MenuEvent.NavigateToScreen(screen)) }
             )

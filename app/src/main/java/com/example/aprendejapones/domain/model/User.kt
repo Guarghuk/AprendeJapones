@@ -28,13 +28,25 @@ data class DailyChallenge(
     val completed: Int,
     val total: Int,
     val timeRemaining: String,
-    val rewardXP: Int = 50
+    val rewardXP: Int = 50,
+    val rewardCoins: Int = 20,
+    val difficulty: ChallengeDifficulty = ChallengeDifficulty.MEDIUM
 ) {
     val progress: Float
         get() = if (total > 0) completed.toFloat() / total.toFloat() else 0f
 
     val isCompleted: Boolean
         get() = completed >= total
+}
+
+/**
+ * Dificultad del desafío diario
+ */
+enum class ChallengeDifficulty(val displayName: String, val coinReward: Int) {
+    EASY("Fácil", 10),
+    MEDIUM("Normal", 20),
+    HARD("Difícil", 35),
+    EXTREME("Extremo", 50)
 }
 
 /**
