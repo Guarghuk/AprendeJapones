@@ -94,8 +94,9 @@ class LessonRepositoryImpl @Inject constructor(
         
         mutex.withLock {
             val currentChallenge = dailyChallenge
-            if (currentChallenge?.date == today && 
-                (currentChallenge.completed) < (currentChallenge.total)) {
+            if (currentChallenge != null && 
+                currentChallenge.date == today && 
+                currentChallenge.completed < currentChallenge.total) {
                 dailyChallenge = currentChallenge.copy(
                     completed = currentChallenge.completed + 1
                 )

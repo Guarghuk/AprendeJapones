@@ -2,7 +2,7 @@ package com.example.aprendejapones.presentation.screens.sync
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.aprendejapones.data.mapper.UserMapper.toFirestoreUser
+import com.example.aprendejapones.data.mapper.toFirestoreUser
 import com.example.aprendejapones.domain.repository.AchievementRepository
 import com.example.aprendejapones.domain.repository.FirestoreUserRepository
 import com.example.aprendejapones.domain.repository.LessonRepository
