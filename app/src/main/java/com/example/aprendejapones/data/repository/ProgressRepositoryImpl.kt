@@ -1,8 +1,8 @@
 package com.example.aprendejapones.data.repository
 
-import com.example.aprendejapones.data.local.database.dao.ProgressDao
-import com.example.aprendejapones.data.local.database.dao.UserDao
-import com.example.aprendejapones.data.local.database.entity.ProgressEntity
+import com.example.aprendejapones.data.local.database.dao.ProgresoCategoriaDao
+import com.example.aprendejapones.data.local.database.dao.UsuariosLocalDao
+import com.example.aprendejapones.data.local.database.entity.ProgresoCategoriaEntity
 import com.example.aprendejapones.domain.repository.CategoryProgress
 import com.example.aprendejapones.domain.repository.ProgressRepository
 import kotlinx.coroutines.flow.Flow
@@ -12,19 +12,19 @@ import javax.inject.Singleton
 
 @Singleton
 class ProgressRepositoryImpl @Inject constructor(
-    private val progressDao: ProgressDao,
-    private val userDao: UserDao
+    private val progresoCategoriaDao: ProgresoCategoriaDao,
+    private val usuariosLocalDao: UsuariosLocalDao
 ) : ProgressRepository {
 
     override fun getUserProgressFlow(): Flow<List<CategoryProgress>> {
-        return userDao.getCurrentUserFlow().map { user ->
-            user?.let {
-                progressDao.getAllProgress(it.id).map { entity ->
+        return usuariosLocalDao.getCurrentUsuarioFlow().map { usuario ->
+            usuario?.let {
+                progresoCategoriaDao.getAllProgreso(it.idUsuario).map { entity ->
                     CategoryProgress(
-                        category = entity.category,
-                        progress = entity.progress,
-                        itemsLearned = entity.itemsLearned,
-                        totalItems = entity.totalItems
+                        category = entity.idCategoria,
+                        progress = entity.porcentajeCompletado,
+                        itemsLearned = 0, // Not stored in new schema, calculate from other data
+                        totalItems = getTotalItemsForCategory(entity.idCategoria)
                     )
                 }
             } ?: emptyList()
@@ -32,26 +32,26 @@ class ProgressRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getAllProgress(): List<CategoryProgress> {
-        val user = userDao.getCurrentUser() ?: return emptyList()
-        return progressDao.getAllProgress(user.id).map { entity ->
+        val usuario = usuariosLocalDao.getCurrentUsuario() ?: return emptyList()
+        return progresoCategoriaDao.getAllProgreso(usuario.idUsuario).map { entity ->
             CategoryProgress(
-                category = entity.category,
-                progress = entity.progress,
-                itemsLearned = entity.itemsLearned,
-                totalItems = entity.totalItems
+                category = entity.idCategoria,
+                progress = entity.porcentajeCompletado,
+                itemsLearned = 0, // Not stored in new schema
+                totalItems = getTotalItemsForCategory(entity.idCategoria)
             )
         }
     }
 
     override suspend fun getProgressByCategory(category: String): CategoryProgress? {
-        val user = userDao.getCurrentUser() ?: return null
-        val entity = progressDao.getProgressByCategory(user.id, category) ?: return null
+        val usuario = usuariosLocalDao.getCurrentUsuario() ?: return null
+        val entity = progresoCategoriaDao.getProgresoByCategoria(usuario.idUsuario, category) ?: return null
 
         return CategoryProgress(
-            category = entity.category,
-            progress = entity.progress,
-            itemsLearned = entity.itemsLearned,
-            totalItems = entity.totalItems
+            category = entity.idCategoria,
+            progress = entity.porcentajeCompletado,
+            itemsLearned = 0, // Not stored in new schema
+            totalItems = getTotalItemsForCategory(entity.idCategoria)
         )
     }
 
@@ -60,52 +60,42 @@ class ProgressRepositoryImpl @Inject constructor(
         progressPercent: Int,
         itemsLearned: Int
     ) {
-        val user = userDao.getCurrentUser() ?: return
+        val usuario = usuariosLocalDao.getCurrentUsuario() ?: return
 
-        val existing = progressDao.getProgressByCategory(user.id, category)
+        val existing = progresoCategoriaDao.getProgresoByCategoria(usuario.idUsuario, category)
 
         if (existing != null) {
-            progressDao.updateProgressByCategory(
-                userId = user.id,
-                category = category,
-                progressPercent = progressPercent,
-                itemsLearned = itemsLearned
+            progresoCategoriaDao.updateProgresoByCategoria(
+                idUsuario = usuario.idUsuario,
+                idCategoria = category,
+                porcentaje = progressPercent
             )
         } else {
-            progressDao.insertProgress(
-                ProgressEntity(
-                    userId = user.id,
-                    category = category,
-                    progress = progressPercent,
-                    itemsLearned = itemsLearned,
-                    totalItems = getTotalItemsForCategory(category),
-                    lastStudiedAt = System.currentTimeMillis()
+            progresoCategoriaDao.insertProgreso(
+                ProgresoCategoriaEntity(
+                    idUsuario = usuario.idUsuario,
+                    idCategoria = category,
+                    porcentajeCompletado = progressPercent,
+                    fechaUltimaActividad = System.currentTimeMillis()
                 )
             )
         }
     }
 
     override suspend fun initializeDefaultProgress() {
-        val user = userDao.getCurrentUser() ?: return
+        val usuario = usuariosLocalDao.getCurrentUsuario() ?: return
 
-        val categories = listOf(
-            Triple("hiragana", 0, 46),
-            Triple("katakana", 0, 46),
-            Triple("kanji", 0, 2136),
-            Triple("grammar", 0, 100),
-            Triple("vocabulary", 0, 1000)
-        )
+        val categories = listOf("hiragana", "katakana", "kanji", "grammar", "vocabulary")
 
-        categories.forEach { (category, learned, total) ->
-            val existing = progressDao.getProgressByCategory(user.id, category)
+        categories.forEach { category ->
+            val existing = progresoCategoriaDao.getProgresoByCategoria(usuario.idUsuario, category)
             if (existing == null) {
-                progressDao.insertProgress(
-                    ProgressEntity(
-                        userId = user.id,
-                        category = category,
-                        progress = 0,
-                        itemsLearned = learned,
-                        totalItems = total
+                progresoCategoriaDao.insertProgreso(
+                    ProgresoCategoriaEntity(
+                        idUsuario = usuario.idUsuario,
+                        idCategoria = category,
+                        porcentajeCompletado = 0,
+                        fechaUltimaActividad = System.currentTimeMillis()
                     )
                 )
             }

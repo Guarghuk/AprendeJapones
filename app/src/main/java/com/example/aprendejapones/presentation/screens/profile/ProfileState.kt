@@ -35,6 +35,9 @@ data class ProfileState(
 
     val memberSince: String
         get() = user?.memberSince ?: "Enero 2025"
+    
+    val drops: Int
+        get() = user?.drops ?: 0
 
     val unlockedAchievementsCount: Int
         get() = achievements.count { it.isUnlocked }

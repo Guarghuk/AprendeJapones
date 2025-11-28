@@ -1,15 +1,15 @@
 package com.example.aprendejapones.data.repository
 
-import com.example.aprendejapones.data.local.database.dao.LessonDao
-import com.example.aprendejapones.data.local.database.dao.UserDao
-import com.example.aprendejapones.data.local.database.entity.DailyChallengeEntity
-import com.example.aprendejapones.data.local.database.entity.LessonEntity
-import com.example.aprendejapones.data.mapper.DailyChallengeMapper.toDomain
+import com.example.aprendejapones.data.local.database.dao.HistorialLeccionesDao
+import com.example.aprendejapones.data.local.database.dao.UsuariosLocalDao
+import com.example.aprendejapones.data.local.database.entity.HistorialLeccionesEntity
 import com.example.aprendejapones.domain.model.DailyChallenge
 import com.example.aprendejapones.domain.repository.LessonRepository
 import com.example.aprendejapones.domain.repository.LessonStats
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -18,11 +18,16 @@ import javax.inject.Singleton
 
 @Singleton
 class LessonRepositoryImpl @Inject constructor(
-    private val lessonDao: LessonDao,
-    private val userDao: UserDao
+    private val historialLeccionesDao: HistorialLeccionesDao,
+    private val usuariosLocalDao: UsuariosLocalDao
 ) : LessonRepository {
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    
+    // In-memory daily challenge state with thread safety
+    private val mutex = Mutex()
+    @Volatile
+    private var dailyChallenge: DailyChallengeState? = null
 
     override suspend fun saveLesson(
         lessonType: String,
@@ -32,81 +37,83 @@ class LessonRepositoryImpl @Inject constructor(
         xpEarned: Int,
         timeSpentSeconds: Int
     ) {
-        val user = userDao.getCurrentUser() ?: return
+        val usuario = usuariosLocalDao.getCurrentUsuario() ?: return
 
-        val lesson = LessonEntity(
-            userId = user.id,
-            lessonType = lessonType,
-            lessonName = lessonName,
-            totalQuestions = totalQuestions,
-            correctAnswers = correctAnswers,
-            xpEarned = xpEarned,
-            timeSpentSeconds = timeSpentSeconds
+        val historial = HistorialLeccionesEntity(
+            idUsuario = usuario.idUsuario,
+            idLeccion = "$lessonType-$lessonName",
+            fechaCompletado = System.currentTimeMillis(),
+            respuestasCorrectas = correctAnswers,
+            totalPreguntas = totalQuestions,
+            xpGanada = xpEarned,
+            tiempoTardadoSeg = timeSpentSeconds
         )
 
-        lessonDao.insertLesson(lesson)
+        historialLeccionesDao.insertHistorial(historial)
 
         // Update daily challenge progress
         updateChallengeProgress()
     }
 
     override suspend fun getLessonStats(): LessonStats {
-        val user = userDao.getCurrentUser() ?: return LessonStats(0, 0, 0)
+        val usuario = usuariosLocalDao.getCurrentUsuario() ?: return LessonStats(0, 0, 0)
 
         return LessonStats(
-            totalLessonsCompleted = lessonDao.getTotalLessonsCompleted(user.id),
-            totalStudyTimeMinutes = (lessonDao.getTotalStudyTime(user.id) ?: 0) / 60,
-            totalXPEarned = lessonDao.getTotalXPEarned(user.id) ?: 0
+            totalLessonsCompleted = historialLeccionesDao.getTotalLeccionesCompletadas(usuario.idUsuario),
+            totalStudyTimeMinutes = (historialLeccionesDao.getTotalTiempoEstudio(usuario.idUsuario) ?: 0) / 60,
+            totalXPEarned = historialLeccionesDao.getTotalXPGanada(usuario.idUsuario) ?: 0
         )
     }
 
     override suspend fun getTodayChallenge(): DailyChallenge? {
-        val user = userDao.getCurrentUser() ?: return null
         val today = dateFormat.format(Date())
-
-        val entity = lessonDao.getDailyChallenge(user.id, today) ?: return null
-
-        return entity.toDomain(calculateTimeRemaining())
+        
+        return mutex.withLock {
+            // Initialize if needed or if date changed
+            if (dailyChallenge == null || dailyChallenge?.date != today) {
+                dailyChallenge = DailyChallengeState(
+                    date = today,
+                    completed = 0,
+                    total = 5
+                )
+            }
+            dailyChallenge?.toDomain(calculateTimeRemaining())
+        }
     }
 
     override fun getTodayChallengeFlow(): Flow<DailyChallenge?> {
-        val today = dateFormat.format(Date())
-
-        return userDao.getCurrentUserFlow().map { user ->
-            user?.let {
-                lessonDao.getDailyChallenge(it.id, today)?.toDomain(calculateTimeRemaining())
+        return usuariosLocalDao.getCurrentUsuarioFlow().map { usuario ->
+            usuario?.let {
+                getTodayChallenge()
             }
         }
     }
 
     override suspend fun updateChallengeProgress() {
-        val user = userDao.getCurrentUser() ?: return
         val today = dateFormat.format(Date())
-
-        val challenge = lessonDao.getDailyChallenge(user.id, today) ?: return
-
-        if (!challenge.isCompleted) {
-            val newCompleted = (challenge.completed + 1).coerceAtMost(challenge.total)
-            lessonDao.updateChallengeProgress(user.id, today, newCompleted)
+        
+        mutex.withLock {
+            val currentChallenge = dailyChallenge
+            if (currentChallenge?.date == today && 
+                (currentChallenge.completed) < (currentChallenge.total)) {
+                dailyChallenge = currentChallenge.copy(
+                    completed = currentChallenge.completed + 1
+                )
+            }
         }
     }
 
     override suspend fun initializeTodayChallenge() {
-        val user = userDao.getCurrentUser() ?: return
         val today = dateFormat.format(Date())
-
-        val existing = lessonDao.getDailyChallenge(user.id, today)
-
-        if (existing == null) {
-            lessonDao.insertDailyChallenge(
-                DailyChallengeEntity(
-                    userId = user.id,
+        
+        mutex.withLock {
+            if (dailyChallenge == null || dailyChallenge?.date != today) {
+                dailyChallenge = DailyChallengeState(
                     date = today,
                     completed = 0,
-                    total = 5,
-                    isCompleted = false
+                    total = 5
                 )
-            )
+            }
         }
     }
 
@@ -124,5 +131,22 @@ class LessonRepositoryImpl @Inject constructor(
         val seconds = TimeUnit.MILLISECONDS.toSeconds(diff) % 60
 
         return String.format("%02d:%02d:%02d", hours, minutes, seconds)
+    }
+    
+    // Internal data class for daily challenge state
+    private data class DailyChallengeState(
+        val date: String,
+        val completed: Int,
+        val total: Int
+    ) {
+        fun toDomain(timeRemaining: String): DailyChallenge {
+            return DailyChallenge(
+                id = date,
+                completed = completed,
+                total = total,
+                timeRemaining = timeRemaining,
+                rewardXP = 50
+            )
+        }
     }
 }

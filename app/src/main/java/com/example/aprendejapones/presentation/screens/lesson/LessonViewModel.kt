@@ -6,7 +6,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import androidx.lifecycle.SavedStateHandle
-import com.example.aprendejapones.data.local.database.entity.DailyChallengeEntity
 import com.example.aprendejapones.domain.manager.StreakManager
 import com.example.aprendejapones.domain.repository.LessonContentRepository
 import com.example.aprendejapones.domain.repository.LessonRepository
@@ -154,13 +153,28 @@ class LessonViewModel @Inject constructor(
         }
     }
 
+    companion object {
+        // Reward constants
+        private const val XP_PER_CORRECT_ANSWER = 10
+        private const val BASE_COINS = 5
+        private const val BONUS_COINS_PERFECT = 10    // 100% correct
+        private const val BONUS_COINS_EXCELLENT = 5   // >=80% correct
+        private const val BONUS_COINS_GOOD = 2        // >=60% correct
+        private const val THRESHOLD_PERFECT = 1.0f
+        private const val THRESHOLD_EXCELLENT = 0.8f
+        private const val THRESHOLD_GOOD = 0.6f
+    }
+    
     private fun finishLesson() {
         viewModelScope.launch {
             val state = _state.value
 
             try {
                 // Calcular XP ganado
-                val xpEarned = state.correctAnswers * 10
+                val xpEarned = state.correctAnswers * XP_PER_CORRECT_ANSWER
+                
+                // Calcular monedas ganadas (basado en rendimiento)
+                val coinsEarned = calculateCoinsEarned(state.correctAnswers, state.totalQuestions)
 
                 // Guardar lección completada
                 lessonRepository.saveLesson(
@@ -174,6 +188,9 @@ class LessonViewModel @Inject constructor(
 
                 // Actualizar XP
                 userRepository.addXP(xpEarned)
+                
+                // Actualizar monedas (drops) - always positive for valid lessons
+                userRepository.addDrops(coinsEarned)
 
                 // Actualizar racha
                 streakManager.checkAndUpdateStreak()
@@ -184,13 +201,38 @@ class LessonViewModel @Inject constructor(
                 // Actualizar desafío diario
                 lessonRepository.updateChallengeProgress()
 
-                // Mostrar resultados
-                _state.update { it.copy(showResults = true) }
+                // Mostrar resultados con recompensas
+                _state.update { 
+                    it.copy(
+                        showResults = true,
+                        xpEarned = xpEarned,
+                        coinsEarned = coinsEarned
+                    ) 
+                }
+                
+                // Mostrar mensaje de recompensas
+                _effects.emit(LessonEffect.ShowToast("+$xpEarned XP, +$coinsEarned 💧"))
 
             } catch (e: Exception) {
                 _effects.emit(LessonEffect.ShowToast("Error al guardar progreso"))
             }
         }
+    }
+    
+    /**
+     * Calcula las monedas ganadas basándose en el rendimiento
+     * Base: BASE_COINS monedas, bonus por respuestas correctas
+     */
+    private fun calculateCoinsEarned(correctAnswers: Int, totalQuestions: Int): Int {
+        if (totalQuestions == 0) return 0
+        val percentage = correctAnswers.toFloat() / totalQuestions
+        val bonusCoins = when {
+            percentage >= THRESHOLD_PERFECT -> BONUS_COINS_PERFECT
+            percentage >= THRESHOLD_EXCELLENT -> BONUS_COINS_EXCELLENT
+            percentage >= THRESHOLD_GOOD -> BONUS_COINS_GOOD
+            else -> 0
+        }
+        return BASE_COINS + bonusCoins
     }
 
     private suspend fun updateCategoryProgress(

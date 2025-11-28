@@ -31,25 +31,25 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideUserDao(database: AppDatabase): UserDao {
-        return database.userDao()
+    fun provideUsuariosLocalDao(database: AppDatabase): UsuariosLocalDao {
+        return database.usuariosLocalDao()
     }
 
     @Provides
     @Singleton
-    fun provideProgressDao(database: AppDatabase): ProgressDao {
-        return database.progressDao()
+    fun provideProgresoCategoriaDao(database: AppDatabase): ProgresoCategoriaDao {
+        return database.progresoCategoriaDao()
     }
 
     @Provides
     @Singleton
-    fun provideAchievementDao(database: AppDatabase): AchievementDao {
-        return database.achievementDao()
+    fun provideHistorialLeccionesDao(database: AppDatabase): HistorialLeccionesDao {
+        return database.historialLeccionesDao()
     }
 
     @Provides
     @Singleton
-    fun provideLessonDao(database: AppDatabase): LessonDao {
-        return database.lessonDao()
+    fun provideLogrosLocalDao(database: AppDatabase): LogrosLocalDao {
+        return database.logrosLocalDao()
     }
 }

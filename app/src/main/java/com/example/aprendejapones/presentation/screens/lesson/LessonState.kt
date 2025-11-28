@@ -12,7 +12,9 @@ data class LessonState(
     val isAnswered: Boolean = false,
     val showResults: Boolean = false,
     val questions: List<Question> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val xpEarned: Int = 0,
+    val coinsEarned: Int = 0
 ) {
     val totalQuestions: Int get() = questions.size
 }
