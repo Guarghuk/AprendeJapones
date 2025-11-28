@@ -34,14 +34,16 @@ class SplashViewModel @Inject constructor(
                 val hasSeenOnboarding = preferencesManager.hasSeenOnboarding.first()
 
                 // Decidir destino
+                // Si ya completó onboarding -> Home
+                // Si no -> Login (el usuario debe registrarse/iniciar sesión primero)
                 _navigationDestination.value = if (hasSeenOnboarding) {
                     "home"
                 } else {
-                    "onboarding"
+                    "login"
                 }
             } catch (e: Exception) {
-                // En caso de error, ir a onboarding por defecto
-                _navigationDestination.value = "onboarding"
+                // En caso de error, ir a login por defecto
+                _navigationDestination.value = "login"
             }
         }
     }
