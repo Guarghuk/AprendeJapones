@@ -7,10 +7,10 @@ import com.example.aprendejapones.domain.model.FirestoreSavedPost
 import com.example.aprendejapones.domain.model.FirestoreUser
 import com.example.aprendejapones.domain.repository.AuthRepository
 import com.example.aprendejapones.domain.repository.CommunityRepository
-import com.google.firebase.firestore.FieldValue
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.Query
-import kotlinx.coroutines.Dispatchers
+import com.google.firebase.firestore. FieldValue
+import com.google.firebase. firestore.FirebaseFirestore
+import com.google.firebase.firestore. Query
+import kotlinx.coroutines. Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
+import javax.inject. Inject
 import javax.inject.Singleton
 
 @Singleton
@@ -28,16 +28,16 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
 ) : CommunityRepository {
 
     override fun getPostsFlow(): Flow<List<FirestorePost>> = callbackFlow {
-        val listener = firestore.collection("posts")
-            .orderBy("createdAt", Query.Direction.DESCENDING)
+        val listener = firestore. collection("posts")
+            .orderBy("createdAt", Query. Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
                     return@addSnapshotListener
                 }
 
-                val posts = snapshot?.documents?.mapNotNull {
-                    it.toObject(FirestorePost::class.java)?.copy(id = it.id)
+                val posts = snapshot?.documents?. mapNotNull {
+                    it.toObject(FirestorePost::class.java)?. copy(id = it.id)
                 } ?: emptyList()
 
                 trySend(posts)
@@ -50,7 +50,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val userId = authRepository.getCurrentUserId()
-                    ?: return@withContext Result.failure(Exception("Not logged in"))
+                    ?: return@withContext Result. failure(Exception("Not logged in"))
 
                 val user = getUserProfile(userId)
                     ?: return@withContext Result.failure(Exception("User profile not found"))
@@ -65,9 +65,9 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 )
 
                 firestore.collection("posts").add(post).await()
-                
+
                 android.util.Log.d("FirestoreCommunity", "Post created successfully: $content")
-                
+
                 Result.success(Unit)
             } catch (e: Exception) {
                 android.util.Log.e("FirestoreCommunity", "Error creating post", e)
@@ -77,7 +77,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
     }
 
     override suspend fun likePost(postId: String): Result<Unit> {
-        return withContext(Dispatchers.IO) {
+        return withContext(Dispatchers. IO) {
             try {
                 val userId = authRepository.getCurrentUserId()
                     ?: return@withContext Result.failure(Exception("Not logged in"))
@@ -86,15 +86,17 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
 
                 // Create like
                 val like = FirestoreLike(userId, postId, System.currentTimeMillis())
-                firestore.collection("likes").document(likeId).set(like).await()
+                firestore.collection("likes"). document(likeId).set(like).await()
 
                 // Increment counter
                 firestore.collection("posts").document(postId)
                     .update("likesCount", FieldValue.increment(1))
                     .await()
 
+                android.util.Log.d("FirestoreCommunity", "Post liked: $postId")
                 Result.success(Unit)
             } catch (e: Exception) {
+                android.util.Log.e("FirestoreCommunity", "Error liking post", e)
                 Result.failure(e)
             }
         }
@@ -109,15 +111,17 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 val likeId = "${userId}_${postId}"
 
                 // Delete like
-                firestore.collection("likes").document(likeId).delete().await()
+                firestore.collection("likes").document(likeId). delete().await()
 
                 // Decrement counter
-                firestore.collection("posts").document(postId)
+                firestore. collection("posts").document(postId)
                     .update("likesCount", FieldValue.increment(-1))
                     .await()
 
+                android.util.Log.d("FirestoreCommunity", "Post unliked: $postId")
                 Result.success(Unit)
             } catch (e: Exception) {
+                android.util.Log.e("FirestoreCommunity", "Error unliking post", e)
                 Result.failure(e)
             }
         }
@@ -130,7 +134,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     ?: return@withContext Result.failure(Exception("Not logged in"))
 
                 val user = getUserProfile(userId)
-                    ?: return@withContext Result.failure(Exception("User profile not found for userId: $userId"))
+                    ?: return@withContext Result.failure(Exception("User profile not found"))
 
                 val comment = FirestoreComment(
                     postId = postId,
@@ -143,13 +147,15 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
 
                 firestore.collection("comments").add(comment).await()
 
-                // Increment comments counter on post
+                // Increment comments counter
                 firestore.collection("posts").document(postId)
                     .update("commentsCount", FieldValue.increment(1))
                     .await()
 
+                android.util.Log.d("FirestoreCommunity", "Comment added to post: $postId")
                 Result.success(Unit)
             } catch (e: Exception) {
+                android.util.Log. e("FirestoreCommunity", "Error adding comment", e)
                 Result.failure(e)
             }
         }
@@ -158,7 +164,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
     override fun getCommentsFlow(postId: String): Flow<List<FirestoreComment>> = callbackFlow {
         val listener = firestore.collection("comments")
             .whereEqualTo("postId", postId)
-            .orderBy("createdAt", Query.Direction.ASCENDING)
+            .orderBy("createdAt", Query.Direction. ASCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     close(error)
@@ -166,7 +172,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 }
 
                 val comments = snapshot?.documents?.mapNotNull {
-                    it.toObject(FirestoreComment::class.java)?.copy(id = it.id)
+                    it.toObject(FirestoreComment::class.java)?.copy(id = it. id)
                 } ?: emptyList()
 
                 trySend(comments)
@@ -179,7 +185,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
         try {
             val userId = authRepository.getCurrentUserId() ?: return@withContext false
             val likeId = "${userId}_${postId}"
-            val doc = firestore.collection("likes").document(likeId).get().await()
+            val doc = firestore.collection("likes"). document(likeId). get().await()
             doc.exists()
         } catch (e: Exception) {
             false
@@ -190,35 +196,35 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val userId = authRepository.getCurrentUserId()
-                    ?: return@withContext Result.failure(Exception("Not logged in"))
+                    ?: return@withContext Result. failure(Exception("Not logged in"))
 
                 // Verify ownership
-                val post = firestore.collection("posts").document(postId).get().await()
+                val post = firestore.collection("posts"). document(postId).get().await()
                 val postAuthorId = post.getString("authorId")
-                
+
                 if (postAuthorId != userId) {
-                    return@withContext Result.failure(Exception("Not authorized to delete this post"))
+                    return@withContext Result.failure(Exception("Not authorized"))
                 }
 
-                // Delete the post
-                firestore.collection("posts").document(postId).delete().await()
+                // Delete post
+                firestore.collection("posts").document(postId). delete().await()
 
-                // Delete associated likes
+                // Delete likes
                 val likes = firestore.collection("likes")
                     .whereEqualTo("postId", postId)
                     .get()
                     .await()
-                
-                for (like in likes.documents) {
-                    like.reference.delete().await()
+
+                for (like in likes. documents) {
+                    like. reference.delete().await()
                 }
 
-                // Delete associated comments
+                // Delete comments
                 val comments = firestore.collection("comments")
                     .whereEqualTo("postId", postId)
                     .get()
                     .await()
-                
+
                 for (comment in comments.documents) {
                     comment.reference.delete().await()
                 }
@@ -402,8 +408,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Helper method to get user profile directly from Firestore
-     * to avoid circular dependency with FirestoreUserRepository
+     * Helper method to get user profile
      */
     private suspend fun getUserProfile(userId: String): FirestoreUser? {
         return try {

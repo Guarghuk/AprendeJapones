@@ -12,8 +12,9 @@ val AccentOrange = Color(0xFFFF9800)
 val AccentOrangeLight = Color(0xFFFFF8E1)
 val AccentOrangeDark = Color(0xFFFF6F00)
 
-val AccentBlue = Color(0xFF2196F3)
 val AccentRed = Color(0xFFFF5722)
+val AccentBlue = Color(0xFF2196F3)
+val AccentPink = Color(0xFFE91E63)
 
 // Background & Surface
 val BackgroundGray = Color(0xFFF5F5F5)

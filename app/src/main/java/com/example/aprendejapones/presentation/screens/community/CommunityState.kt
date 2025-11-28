@@ -54,5 +54,6 @@ sealed class CommunityEvent {
 sealed class CommunityEffect {
     object NavigateToNewPost : CommunityEffect()
     data class NavigateToPostDetail(val postId: String) : CommunityEffect()
+    data class NavigateToUserProfile(val userId: String) : CommunityEffect()
     data class ShowToast(val message: String) : CommunityEffect()
 }

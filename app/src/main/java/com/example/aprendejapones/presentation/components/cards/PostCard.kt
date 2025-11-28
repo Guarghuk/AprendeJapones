@@ -2,11 +2,18 @@ package com.example.aprendejapones.presentation.components.cards
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.foundation. clickable
+import androidx.compose. foundation.layout.*
+import androidx.compose.foundation. shape.CircleShape
+import androidx.compose. foundation.shape.RoundedCornerShape
+import androidx.compose. material. icons.Icons
+import androidx.compose.material.icons.filled. Bookmark
+import androidx.compose.material. icons.filled.BookmarkBorder
+import androidx.compose.material. icons.filled.ChatBubbleOutline
+import androidx.compose. material.icons.filled. Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose. material3.*
+import androidx.compose.runtime. Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,11 +25,10 @@ import com.example.aprendejapones.presentation.theme.*
 import com.example.aprendejapones.utils.TimeUtils
 
 /**
- * Card de publicación en comunidad
+ * Card de post mejorado con todas las funcionalidades
  */
 @Composable
 fun PostCard(
-    modifier: Modifier = Modifier,
     post: FirestorePost,
     isSaved: Boolean = false,
     onLike: (String) -> Unit = {},
@@ -109,6 +115,46 @@ fun PostCard(
                     .height(1.dp)
                     .background(BorderLight)
             )
+            Text(
+                text = category,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Medium,
+                color = color
+            )
+        }
+    }
+}
+
+@Composable
+private fun PostActions(
+    likesCount: Int,
+    commentsCount: Int,
+    isLiked: Boolean,
+    isSaved: Boolean,
+    onLike: () -> Unit,
+    onComment: () -> Unit,
+    onSave: () -> Unit
+) {
+    Row(
+        modifier = Modifier. fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Like button
+        ActionButton(
+            icon = if (isLiked) Icons. Default.Favorite else Icons.Default.FavoriteBorder,
+            count = likesCount,
+            tint = if (isLiked) Color.Red else TextSecondary,
+            onClick = onLike
+        )
+
+        // Comment button
+        ActionButton(
+            icon = Icons.Default.ChatBubbleOutline,
+            count = commentsCount,
+            tint = TextSecondary,
+            onClick = onComment
+        )
 
             // Acciones
             Row(
@@ -202,5 +248,20 @@ fun PostCard(
                 }
             }
         }
+    }
+}
+
+/**
+ * Obtiene icono y color según categoría
+ */
+private fun getCategoryIconAndColor(category: String): Pair<String, Color> {
+    return when (category) {
+        "General" -> "💬" to Color(0xFF9E9E9E)
+        "Gramática" -> "📖" to Color(0xFF2196F3)
+        "Vocabulario" -> "📚" to Color(0xFF9C27B0)
+        "Kanji" -> "漢" to Color(0xFFE91E63)
+        "Pronunciación" -> "🎤" to Color(0xFFFF9800)
+        "Cultura" -> "🎌" to Color(0xFFF44336)
+        else -> "💬" to Color(0xFF9E9E9E)
     }
 }

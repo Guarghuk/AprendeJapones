@@ -140,4 +140,10 @@ dependencies {
     // Material Icons (filled, outlined, rounded, etc.)
     implementation("androidx.compose.material:material-icons-core:1.7.5")
     implementation("androidx.compose.material:material-icons-extended:1.7.5")
+
+    // Material Icons Extended (para iconos adicionales)
+    //implementation("androidx. compose.material:material-icons-extended:1.5.4")
+
+    // Accompanist (para SwipeRefresh)
+    implementation("com.google.accompanist:accompanist-swiperefresh:0.30.1")
 }
