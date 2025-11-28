@@ -15,7 +15,6 @@ data class OnboardingState(
  */
 sealed class OnboardingEvent {
     data class PageChanged(val page: Int) : OnboardingEvent()
-    data class UserNameChanged(val name: String) : OnboardingEvent()
     object CompleteOnboarding : OnboardingEvent()
     object SkipOnboarding : OnboardingEvent()
 }

@@ -63,6 +63,9 @@ class MainActivity : ComponentActivity() {
                         "onboarding" -> {
                             KotodamaNavGraph(startDestination = Screen.Onboarding.route)
                         }
+                        "login" -> {
+                            KotodamaNavGraph(startDestination = Screen.Login.route)
+                        }
                         "home" -> {
                             KotodamaNavGraph(startDestination = Screen.Home.route)
                         }

@@ -11,7 +11,8 @@ import javax.inject.Inject
 
 /**
  * ViewModel para Onboarding
- * Maneja la creación inicial del perfil y la navegación
+ * Maneja la navegación del onboarding después del registro
+ * El nombre del usuario ya se obtuvo durante el registro
  */
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
@@ -25,13 +26,22 @@ class OnboardingViewModel @Inject constructor(
     private val _effects = MutableSharedFlow<OnboardingEffect>()
     val effects: SharedFlow<OnboardingEffect> = _effects.asSharedFlow()
 
+    init {
+        // Cargar el nombre del usuario desde las preferencias (guardado durante el registro)
+        loadUserName()
+    }
+
+    private fun loadUserName() {
+        viewModelScope.launch {
+            val name = preferencesManager.userName.first()
+            _state.update { it.copy(userName = name ?: "") }
+        }
+    }
+
     fun onEvent(event: OnboardingEvent) {
         when (event) {
             is OnboardingEvent.PageChanged -> {
                 _state.update { it.copy(currentPage = event.page) }
-            }
-            is OnboardingEvent.UserNameChanged -> {
-                _state.update { it.copy(userName = event.name) }
             }
             OnboardingEvent.CompleteOnboarding -> completeOnboarding()
             OnboardingEvent.SkipOnboarding -> skipOnboarding()
@@ -40,24 +50,9 @@ class OnboardingViewModel @Inject constructor(
 
     private fun completeOnboarding() {
         viewModelScope.launch {
-            val userName = _state.value.userName.trim()
-
-            if (userName.isEmpty()) {
-                _effects.emit(OnboardingEffect.ShowToast("Por favor ingresa tu nombre"))
-                return@launch
-            }
-
             _state.update { it.copy(isCreatingProfile = true, error = null) }
 
             try {
-                // Crear o actualizar usuario
-                val user = userRepository.getOrCreateUser()
-                val updatedUser = user.copy(username = userName)
-                userRepository.updateUser(updatedUser)
-
-                // Guardar nombre en preferences
-                preferencesManager.saveUserName(userName)
-
                 // Marcar onboarding como completado
                 preferencesManager.setOnboardingCompleted()
                 preferencesManager.setFirstLaunchComplete()
@@ -69,10 +64,10 @@ class OnboardingViewModel @Inject constructor(
                 _state.update {
                     it.copy(
                         isCreatingProfile = false,
-                        error = "Error al crear perfil: ${e.message}"
+                        error = "Error al completar: ${e.message}"
                     )
                 }
-                _effects.emit(OnboardingEffect.ShowToast("Error al crear perfil"))
+                _effects.emit(OnboardingEffect.ShowToast("Error al completar"))
             }
         }
     }
@@ -80,9 +75,6 @@ class OnboardingViewModel @Inject constructor(
     private fun skipOnboarding() {
         viewModelScope.launch {
             try {
-                // Crear usuario con nombre por defecto
-                val user = userRepository.getOrCreateUser()
-
                 // Marcar onboarding como completado
                 preferencesManager.setOnboardingCompleted()
                 preferencesManager.setFirstLaunchComplete()

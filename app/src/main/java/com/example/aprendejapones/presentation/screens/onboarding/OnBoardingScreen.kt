@@ -19,14 +19,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.aprendejapones.presentation.screens.onboarding.pages.FeaturesPage
-import com.example.aprendejapones.presentation.screens.onboarding.pages.ProfileSetupPage
+import com.example.aprendejapones.presentation.screens.onboarding.pages.ReadyPage
 import com.example.aprendejapones.presentation.screens.onboarding.pages.WelcomePage
 import com.example.aprendejapones.presentation.theme.*
 import kotlinx.coroutines.launch
 
 /**
  * Pantalla de Onboarding
- * Muestra bienvenida y crea perfil inicial
+ * Muestra bienvenida y características de la app después del registro
+ * El nombre ya se obtuvo durante el registro, no se pide de nuevo
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -69,12 +70,7 @@ fun OnboardingScreen(
                 when (page) {
                     0 -> WelcomePage()
                     1 -> FeaturesPage()
-                    2 -> ProfileSetupPage(
-                        userName = state.userName,
-                        onUserNameChanged = { name ->
-                            viewModel.onEvent(OnboardingEvent.UserNameChanged(name))
-                        }
-                    )
+                    2 -> ReadyPage(userName = state.userName)
                 }
             }
 
@@ -140,7 +136,7 @@ fun OnboardingScreen(
                         }
                     }
                 } else {
-                    // Página 2: Comenzar
+                    // Página final: Comenzar
                     Button(
                         onClick = { viewModel.onEvent(OnboardingEvent.CompleteOnboarding) },
                         enabled = !state.isCreatingProfile,

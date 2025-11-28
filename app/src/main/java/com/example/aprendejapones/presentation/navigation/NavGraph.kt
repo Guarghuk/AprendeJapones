@@ -111,7 +111,7 @@ fun KotodamaNavGraph(
                 ) {
                     OnboardingScreen(
                         onComplete = {
-                            navController.navigate(Screen.Login.route) {
+                            navController.navigate(Screen.Home.route) {
                                 popUpTo(Screen.Onboarding.route) { inclusive = true }
                                 launchSingleTop = true
                             }
