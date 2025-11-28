@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.aprendejapones.domain.model.FirestorePost
 import com.example.aprendejapones.domain.repository.AuthRepository
 import com.example.aprendejapones.domain.repository.CommunityRepository
+import android.util.Log
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
@@ -20,6 +21,10 @@ class CommunityViewModel @Inject constructor(
     private val authRepository: AuthRepository
 ) : ViewModel() {
 
+    companion object {
+        private const val TAG = "CommunityViewModel"
+    }
+
     private val _state = MutableStateFlow(CommunityState())
     val state: StateFlow<CommunityState> = _state.asStateFlow()
 
@@ -27,25 +32,36 @@ class CommunityViewModel @Inject constructor(
     val effects: SharedFlow<CommunityEffect> = _effects.asSharedFlow()
 
     private var commentsJob: Job? = null
+    
+    private val refreshTrigger = MutableSharedFlow<Unit>(replay = 1)
 
     init {
-        // Listen to posts in real-time
+        // Emit initial trigger to load posts
         viewModelScope.launch {
-            communityRepository.getPostsFlow()
-                .catch { error ->
-                    android.util.Log.e("CommunityViewModel", "Error loading posts", error)
-                    _state.update { it.copy(error = error.message, isLoading = false) }
-                }
-                .collect { posts ->
-                    android.util.Log.d("CommunityViewModel", "Loaded ${posts.size} posts")
-                    _state.update { it.copy(posts = posts, isLoading = false, isRefreshing = false) }
-                }
+            refreshTrigger.emit(Unit)
+        }
+        
+        // Listen to posts in real-time, re-subscribing on refresh
+        viewModelScope.launch {
+            refreshTrigger.flatMapLatest {
+                communityRepository.getPostsFlow()
+            }
+            .catch { error ->
+                Log.e(TAG, "Error loading posts", error)
+                _state.update { it.copy(error = error.message, isLoading = false) }
+            }
+            .collect { posts ->
+                Log.d(TAG, "Loaded ${posts.size} posts")
+                _state.update { it.copy(posts = posts, isLoading = false, isRefreshing = false) }
+            }
         }
 
         // Listen to saved posts in real-time
         viewModelScope.launch {
             communityRepository.getSavedPostsFlow()
-                .catch { /* Ignore errors for saved posts */ }
+                .catch { error ->
+                    Log.e(TAG, "Error loading saved posts", error)
+                }
                 .collect { savedPosts ->
                     _state.update { it.copy(savedPosts = savedPosts) }
                 }
@@ -54,7 +70,9 @@ class CommunityViewModel @Inject constructor(
         // Listen to saved post IDs in real-time
         viewModelScope.launch {
             communityRepository.getSavedPostIdsFlow()
-                .catch { /* Ignore errors */ }
+                .catch { error ->
+                    Log.e(TAG, "Error loading saved post IDs", error)
+                }
                 .collect { savedPostIds ->
                     _state.update { it.copy(savedPostIds = savedPostIds) }
                 }
@@ -81,19 +99,22 @@ class CommunityViewModel @Inject constructor(
 
     private fun refreshPosts() {
         _state.update { it.copy(isRefreshing = true) }
+        viewModelScope.launch {
+            refreshTrigger.emit(Unit)
+        }
     }
 
     private fun createPost(content: String, category: String) {
         viewModelScope.launch {
-            android.util.Log.d("CommunityViewModel", "Creating post: content=$content, category=$category")
+            Log.d(TAG, "Creating post: content=$content, category=$category")
 
             val result = communityRepository.createPost(content, category)
             result.onFailure { error ->
-                android.util.Log.e("CommunityViewModel", "Failed to create post", error)
+                Log.e(TAG, "Failed to create post", error)
                 _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
             }
             result.onSuccess {
-                android.util.Log.d("CommunityViewModel", "Post created successfully")
+                Log.d(TAG, "Post created successfully")
                 _effects.emit(CommunityEffect.ShowToast("Post creado exitosamente"))
             }
         }
@@ -103,7 +124,7 @@ class CommunityViewModel @Inject constructor(
         viewModelScope.launch {
             val isLiked = postId in _state.value.likedPostIds
 
-            android.util.Log.d("CommunityViewModel", "Toggle like for post: $postId, currently liked: $isLiked")
+            Log.d(TAG, "Toggle like for post: $postId, currently liked: $isLiked")
 
             val result = if (isLiked) {
                 communityRepository.unlikePost(postId)
@@ -112,7 +133,7 @@ class CommunityViewModel @Inject constructor(
             }
 
             result.onFailure { error ->
-                android.util.Log.e("CommunityViewModel", "Error toggling like", error)
+                Log.e(TAG, "Error toggling like", error)
                 _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
             }
         }
@@ -170,6 +191,7 @@ class CommunityViewModel @Inject constructor(
         commentsJob = viewModelScope.launch {
             communityRepository.getCommentsFlow(post.id)
                 .catch { error ->
+                    Log.e(TAG, "Error loading comments for post ${post.id}", error)
                     _state.update { it.copy(isLoadingComments = false) }
                 }
                 .collect { comments ->
