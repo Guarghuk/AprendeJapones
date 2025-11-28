@@ -166,13 +166,7 @@ private fun CommunityContent(
         val displayPosts = when (state.filterMode) {
             PostFilterMode.ALL_POSTS -> state.posts
             PostFilterMode.SAVED_POSTS -> state.savedPosts
-            PostFilterMode.BY_CATEGORY -> {
-                if (state.selectedCategory == "Todos") {
-                    state.posts
-                } else {
-                    state.posts.filter { it.category == state.selectedCategory }
-                }
-            }
+            PostFilterMode.BY_CATEGORY -> state.posts.filter { it.category == state.selectedCategory }
         }
 
         if (displayPosts.isEmpty()) {
