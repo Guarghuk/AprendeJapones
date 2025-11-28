@@ -53,9 +53,11 @@ fun CommunityScreen(
                 is CommunityEffect.ShowToast -> {
                     snackbarHostState.showSnackbar(
                         message = effect.message,
-                        duration = SnackbarDuration.Short
+                        duration = SnackbarDuration. Short
                     )
                 }
+
+                is CommunityEffect.NavigateToUserProfile -> TODO()
             }
         }
     }
@@ -81,7 +83,7 @@ fun CommunityScreen(
     ) { paddingValues ->
         Box(
             modifier = Modifier
-                .fillMaxSize()
+                . fillMaxSize()
                 .padding(paddingValues)
         ) {
             CommunityContent(
@@ -108,7 +110,7 @@ fun CommunityScreen(
                         onCommentTextChange = { viewModel.onEvent(CommunityEvent.UpdateNewCommentText(it)) },
                         onSendComment = { viewModel.onEvent(CommunityEvent.AddComment(post.id)) },
                         onLike = { viewModel.onEvent(CommunityEvent.LikePost(post.id)) },
-                        onSave = { viewModel.onEvent(CommunityEvent.ToggleSavePost(post.id)) },
+                        onSave = { viewModel.onEvent(CommunityEvent. ToggleSavePost(post. id)) },
                         onNavigateToProfile = onNavigateToProfile
                     )
                 }
@@ -171,7 +173,7 @@ private fun CommunityContent(
                         onProfileClick = onNavigateToProfile
                     )
                 }
-                
+
                 // Bottom spacing for navigation bar
                 item {
                     Spacer(modifier = Modifier.height(60.dp))
@@ -331,7 +333,7 @@ private fun PostDetailOverlay(
     onNavigateToProfile: (String) -> Unit = {}
 ) {
     val closeContentDescription = stringResource(R.string.close)
-    
+
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = SurfaceWhite
@@ -483,7 +485,7 @@ private fun PostDetailContent(
     val savesLabel = stringResource(R.string.saves_label)
     val savedLabel = stringResource(R.string.saved_label)
     val saveLabel = stringResource(R.string.save_label)
-    
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -524,7 +526,7 @@ private fun PostDetailContent(
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Text(
-                        text = TimeUtils.formatRelativeTime(post.createdAt),
+                        text = TimeUtils.formatRelativeTime(post.createdAt.time),
                         fontSize = 12.sp,
                         color = TextTertiary
                     )
@@ -653,7 +655,7 @@ private fun CommentItem(
                     modifier = Modifier.clickable { onNavigateToProfile(comment.authorId) }
                 )
                 Text(
-                    text = TimeUtils.formatRelativeTime(comment.createdAt),
+                    text = TimeUtils.formatRelativeTime(comment.createdAt.time),
                     fontSize = 11.sp,
                     color = TextTertiary
                 )
@@ -677,7 +679,7 @@ private fun CommentInputBar(
 ) {
     val sendContentDescription = stringResource(R.string.send)
     val placeholderText = stringResource(R.string.comment_placeholder)
-    
+
     Surface(
         modifier = Modifier.fillMaxWidth(),
         color = SurfaceWhite,

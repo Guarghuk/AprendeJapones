@@ -10,6 +10,7 @@ import com.example.aprendejapones.domain.repository.CommunityRepository
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.type.Date
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -58,10 +59,10 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 val post = FirestorePost(
                     authorId = userId,
                     authorName = user.username,
-                    authorPhotoUrl = user.photoUrl,
+                    //authorPhotoUrl = user.photoUrl,
                     content = content,
                     category = category,
-                    createdAt = System.currentTimeMillis()
+                    //createdAt = System.currentTimeMillis()
                 )
 
                 firestore.collection("posts").add(post).await()
@@ -142,7 +143,7 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     authorName = user.username,
                     authorPhotoUrl = user.photoUrl,
                     content = content,
-                    createdAt = System.currentTimeMillis()
+                    createdAt = java.util.Date(System.currentTimeMillis())
                 )
 
                 firestore.collection("comments").add(comment).await()
@@ -417,5 +418,24 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             null
         }
+    }
+    override fun getUserPostsFlow(userId: String): Flow<List<FirestorePost>> = callbackFlow {
+        val listener = firestore. collection("posts")
+            .whereEqualTo("authorId", userId)
+            .orderBy("createdAt", Query.Direction. DESCENDING)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val posts = snapshot?. documents?.mapNotNull {
+                    it.toObject(FirestorePost::class.java)?. copy(id = it.id)
+                } ?: emptyList()
+
+                trySend(posts)
+            }
+
+        awaitClose { listener.remove() }
     }
 }

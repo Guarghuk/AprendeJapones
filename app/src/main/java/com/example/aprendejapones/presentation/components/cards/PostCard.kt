@@ -5,12 +5,17 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.outlined.Comment
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -35,7 +40,7 @@ fun PostCard(
 ) {
     val savedLabel = stringResource(R.string.saved_label)
     val saveLabel = stringResource(R.string.save_label)
-    
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -81,7 +86,7 @@ fun PostCard(
                         horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
-                            text = TimeUtils.formatRelativeTime(post.createdAt),
+                            text = TimeUtils.formatRelativeTime(post.createdAt.time),
                             fontSize = 11.sp,
                             color = TextTertiary
                         )
@@ -116,115 +121,65 @@ fun PostCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(1.dp)
-                    .background(BorderLight)
+                    .background(BorderGray)
             )
 
-            // Acciones
+            // Actions
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 12.dp)
+                    .padding(top = 14.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Comments
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onCommentClick(post) }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "💬",
-                        fontSize = 14.sp
+                Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                    ActionButton(
+                        icon = if (post.isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        text = post.likes.size.toString(),
+                        onClick = { onLike(post.id) },
+                        tint = if (post.isLiked) Color.Red else TextTertiary
                     )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${post.commentsCount}",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
+                    ActionButton(
+                        icon = Icons.Outlined.Comment,
+                        text = post.comments.size.toString(),
+                        onClick = { onCommentClick(post) }
                     )
                 }
-
-                // Likes
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onLike(post.id) }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "👍",
-                        fontSize = 14.sp
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${post.likesCount}",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                // Saves count display
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = "🔖",
-                        fontSize = 14.sp
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${post.savesCount}",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                // Save button
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(if (isSaved) PrimaryGreenLight else SurfaceGray)
-                        .clickable { onSave(post.id) }
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Text(
-                        text = if (isSaved) "📌" else "📍",
-                        fontSize = 12.sp
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = if (isSaved) savedLabel else saveLabel,
-                        fontSize = 11.sp,
-                        color = if (isSaved) PrimaryGreen else TextSecondary,
-                        fontWeight = if (isSaved) FontWeight.SemiBold else FontWeight.Medium
-                    )
-                }
+                ActionButton(
+                    text = if (isSaved) savedLabel else saveLabel,
+                    onClick = { onSave(post.id) }
+                )
             }
         }
     }
 }
 
-/**
- * Obtiene icono y color según categoría
- */
-private fun getCategoryIconAndColor(category: String): Pair<String, Color> {
-    return when (category) {
-        "General" -> "💬" to Color(0xFF9E9E9E)
-        "Gramática" -> "📖" to Color(0xFF2196F3)
-        "Vocabulario" -> "📚" to Color(0xFF9C27B0)
-        "Kanji" -> "漢" to Color(0xFFE91E63)
-        "Pronunciación" -> "🎤" to Color(0xFFFF9800)
-        "Cultura" -> "🎌" to Color(0xFFF44336)
-        else -> "💬" to Color(0xFF9E9E9E)
+@Composable
+fun ActionButton(
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    text: String,
+    onClick: () -> Unit,
+    tint: Color = TextTertiary
+) {
+    Row(
+        modifier = modifier.clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = tint,
+                modifier = Modifier.size(18.dp)
+            )
+        }
+        Text(
+            text = text,
+            fontSize = 12.sp,
+            color = tint,
+            fontWeight = FontWeight.Medium
+        )
     }
 }

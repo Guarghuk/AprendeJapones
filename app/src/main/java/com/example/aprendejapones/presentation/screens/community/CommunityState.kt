@@ -24,6 +24,7 @@ data class CommunityState(
     // Post detail/comments state
     val selectedPost: FirestorePost? = null,
     val selectedPostComments: List<FirestoreComment> = emptyList(),
+    val isRefreshing: Boolean = false,
     val isLoadingComments: Boolean = false,
     val showPostDetail: Boolean = false,
     val newCommentText: String = ""

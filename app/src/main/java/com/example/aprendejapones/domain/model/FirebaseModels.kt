@@ -3,6 +3,7 @@ package com.example.aprendejapones.domain.model
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentId
 import com.google.firebase.firestore.ServerTimestamp
+import java.util.Date
 
 // Usuario en Firestore
 data class FirestoreUser(
@@ -25,15 +26,30 @@ data class FirestorePost(
     val id: String = "",
     val authorId: String = "",
     val authorName: String = "",
-    val authorPhotoUrl: String? = null,
     val content: String = "",
     val category: String = "General",
-    val likesCount: Int = 0,
-    val commentsCount: Int = 0,
-    val savesCount: Int = 0,
-    val createdAt: Long = System.currentTimeMillis(),
-    val updatedAt: Long = System.currentTimeMillis()
-)
+    @ServerTimestamp
+    val createdAt: Date = Date(),
+
+    // Listas para manejar likes, comentarios y guardados
+    val likes: List<String> = emptyList(),      // Lista de user IDs que han dado like
+    val comments: List<String> = emptyList(),   // Lista de comment IDs
+    val saves: List<String> = emptyList(),      // Lista de user IDs que han guardado el post
+
+    // Estos campos no se almacenan en Firestore, se calculan en el cliente
+    val isLiked: Boolean = false,
+    val isSaved: Boolean = false
+) {
+    // Propiedades computadas para obtener los conteos directamente
+    val likesCount: Int
+        get() = likes.size
+
+    val commentsCount: Int
+        get() = comments.size
+
+    val savesCount: Int
+        get() = saves.size
+}
 
 // Comentario
 data class FirestoreComment(
@@ -43,7 +59,7 @@ data class FirestoreComment(
     val authorName: String = "",
     val authorPhotoUrl: String? = null,
     val content: String = "",
-    val createdAt: Long = System.currentTimeMillis(),
+    val createdAt: Date,
     val parentCommentId: String? = null  // Para respuestas
 )
 

@@ -121,19 +121,17 @@ class CommunityViewModel @Inject constructor(
     }
 
     private fun likePost(postId: String) {
-        viewModelScope.launch {
-            val isLiked = postId in _state.value.likedPostIds
+        viewModelScope. launch {
+            Log.d(TAG, "Liking post: $postId")
 
-            Log.d(TAG, "Toggle like for post: $postId, currently liked: $isLiked")
+            val result = communityRepository.likePost(postId)
 
-            val result = if (isLiked) {
-                communityRepository.unlikePost(postId)
-            } else {
-                communityRepository.likePost(postId)
+            result.onSuccess {
+                Log.d(TAG, "Post liked successfully")
+                _effects.emit(CommunityEffect.ShowToast("👍 Me gusta"))
             }
-
             result.onFailure { error ->
-                Log.e(TAG, "Error toggling like", error)
+                Log.e(TAG, "Error liking post", error)
                 _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
             }
         }

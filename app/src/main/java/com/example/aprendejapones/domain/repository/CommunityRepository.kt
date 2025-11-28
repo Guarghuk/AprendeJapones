@@ -72,4 +72,6 @@ interface CommunityRepository {
      * Get set of saved post IDs for current user
      */
     fun getSavedPostIdsFlow(): Flow<Set<String>>
+
+    fun getUserPostsFlow(userId: String): Flow<List<FirestorePost>>
 }
