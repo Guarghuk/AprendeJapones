@@ -19,6 +19,20 @@ class UserRepositoryImpl @Inject constructor(
 
     private val dateFormat = SimpleDateFormat("MMMM yyyy", Locale("es", "ES"))
 
+    companion object {
+        // Default values for new users
+        private const val DEFAULT_USERNAME = "Usuario"
+        private const val DEFAULT_EMAIL = ""
+        private const val DEFAULT_LEVEL = 1
+        private const val DEFAULT_XP = 0
+        private const val DEFAULT_MAX_XP = 100
+        private const val DEFAULT_STREAK = 0
+        private const val DEFAULT_COINS = 0
+        private const val DEFAULT_RANK = "初心者" // Beginner
+        private const val DEFAULT_AVATAR = "K"
+        private const val XP_PER_LEVEL_INCREMENT = 50
+    }
+
     override fun getCurrentUserFlow(): Flow<User?> {
         return usuariosLocalDao.getCurrentUsuarioFlow().map { it?.toDomain() }
     }
@@ -37,13 +51,13 @@ class UserRepositoryImpl @Inject constructor(
             val now = System.currentTimeMillis()
             val newUserEntity = UsuariosLocalEntity(
                 idUsuario = uuid4().toString(),
-                nombreUsuario = "Usuario",
-                email = "",
-                nivel = 1,
-                xpActual = 0,
-                xpMaxNivel = 100,
-                rachaDias = 0,
-                monedas = 0,
+                nombreUsuario = DEFAULT_USERNAME,
+                email = DEFAULT_EMAIL,
+                nivel = DEFAULT_LEVEL,
+                xpActual = DEFAULT_XP,
+                xpMaxNivel = DEFAULT_MAX_XP,
+                rachaDias = DEFAULT_STREAK,
+                monedas = DEFAULT_COINS,
                 fechaRegistro = now,
                 ultimaConexion = now
             )
@@ -98,7 +112,7 @@ class UserRepositoryImpl @Inject constructor(
     }
 
     private fun calculateMaxXP(level: Int): Int {
-        return 100 + (level - 1) * 50 // Simple progression
+        return DEFAULT_MAX_XP + (level - 1) * XP_PER_LEVEL_INCREMENT
     }
 
     // Mapper functions
@@ -106,14 +120,14 @@ class UserRepositoryImpl @Inject constructor(
         return User(
             id = idUsuario,
             username = nombreUsuario,
-            rank = "初心者", // Default rank, could be calculated from level
+            rank = DEFAULT_RANK, // Default rank, could be calculated from level
             level = nivel,
             currentXP = xpActual,
             maxXP = xpMaxNivel,
             streak = rachaDias,
             drops = monedas,
             memberSince = dateFormat.format(Date(fechaRegistro)),
-            avatarLetter = nombreUsuario.firstOrNull()?.toString() ?: "K"
+            avatarLetter = nombreUsuario.firstOrNull()?.toString() ?: DEFAULT_AVATAR
         )
     }
 

@@ -8,6 +8,8 @@ import com.example.aprendejapones.domain.repository.LessonRepository
 import com.example.aprendejapones.domain.repository.LessonStats
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -22,7 +24,9 @@ class LessonRepositoryImpl @Inject constructor(
 
     private val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     
-    // In-memory daily challenge state (could be persisted in SharedPreferences)
+    // In-memory daily challenge state with thread safety
+    private val mutex = Mutex()
+    @Volatile
     private var dailyChallenge: DailyChallengeState? = null
 
     override suspend fun saveLesson(
@@ -64,16 +68,17 @@ class LessonRepositoryImpl @Inject constructor(
     override suspend fun getTodayChallenge(): DailyChallenge? {
         val today = dateFormat.format(Date())
         
-        // Initialize if needed or if date changed
-        if (dailyChallenge == null || dailyChallenge?.date != today) {
-            dailyChallenge = DailyChallengeState(
-                date = today,
-                completed = 0,
-                total = 5
-            )
+        return mutex.withLock {
+            // Initialize if needed or if date changed
+            if (dailyChallenge == null || dailyChallenge?.date != today) {
+                dailyChallenge = DailyChallengeState(
+                    date = today,
+                    completed = 0,
+                    total = 5
+                )
+            }
+            dailyChallenge?.toDomain(calculateTimeRemaining())
         }
-
-        return dailyChallenge?.toDomain(calculateTimeRemaining())
     }
 
     override fun getTodayChallengeFlow(): Flow<DailyChallenge?> {
@@ -87,22 +92,28 @@ class LessonRepositoryImpl @Inject constructor(
     override suspend fun updateChallengeProgress() {
         val today = dateFormat.format(Date())
         
-        if (dailyChallenge?.date == today && dailyChallenge?.completed ?: 0 < dailyChallenge?.total ?: 5) {
-            dailyChallenge = dailyChallenge?.copy(
-                completed = (dailyChallenge?.completed ?: 0) + 1
-            )
+        mutex.withLock {
+            val currentChallenge = dailyChallenge
+            if (currentChallenge?.date == today && 
+                (currentChallenge.completed) < (currentChallenge.total)) {
+                dailyChallenge = currentChallenge.copy(
+                    completed = currentChallenge.completed + 1
+                )
+            }
         }
     }
 
     override suspend fun initializeTodayChallenge() {
         val today = dateFormat.format(Date())
         
-        if (dailyChallenge == null || dailyChallenge?.date != today) {
-            dailyChallenge = DailyChallengeState(
-                date = today,
-                completed = 0,
-                total = 5
-            )
+        mutex.withLock {
+            if (dailyChallenge == null || dailyChallenge?.date != today) {
+                dailyChallenge = DailyChallengeState(
+                    date = today,
+                    completed = 0,
+                    total = 5
+                )
+            }
         }
     }
 
