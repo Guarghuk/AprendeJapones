@@ -52,16 +52,23 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                 val user = getUserProfile(userId)
                     ?: return@withContext Result.failure(Exception("User profile not found"))
 
-                val post = FirestorePost(
-                    authorId = userId,
-                    authorName = user.username,
-                    //authorPhotoUrl = user.photoUrl,
-                    content = content,
-                    category = category,
-                    //createdAt = System.currentTimeMillis()
+                // Use a Map instead of FirestorePost to avoid serializing extra default fields
+                // (like isLiked, empty lists, etc.) which are not needed in Firestore.
+                // Include both authorId and id_autor for compatibility with security rules
+                // that check either field name for authorization.
+                val postData = mapOf(
+                    "authorId" to userId,
+                    "id_autor" to userId,
+                    "authorName" to user.username,
+                    "content" to content,
+                    "category" to category,
+                    "createdAt" to System.currentTimeMillis(),
+                    "likesCount" to 0,
+                    "commentsCount" to 0,
+                    "savesCount" to 0
                 )
 
-                firestore.collection("posts").add(post).await()
+                firestore.collection("posts").add(postData).await()
 
                 android.util.Log.d("FirestoreCommunity", "Post created successfully: $content")
 

@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.example.aprendejapones"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.aprendejapones"
