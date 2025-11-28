@@ -73,5 +73,10 @@ interface CommunityRepository {
      */
     fun getSavedPostIdsFlow(): Flow<Set<String>>
 
+    /**
+     * Get set of post IDs that the user has liked
+     */
+    fun getLikedPostIdsFlow(): Flow<Set<String>>
+
     fun getUserPostsFlow(userId: String): Flow<List<FirestorePost>>
 }

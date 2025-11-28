@@ -19,6 +19,7 @@ data class CommunityState(
     val posts: List<FirestorePost> = emptyList(),
     val savedPosts: List<FirestorePost> = emptyList(),
     val savedPostIds: Set<String> = emptySet(),
+    val likedPostIds: Set<String> = emptySet(),
     val filterMode: PostFilterMode = PostFilterMode.ALL_POSTS,
     val selectedCategory: String = "Todos",
     val showCategoryDialog: Boolean = false,
@@ -44,6 +45,7 @@ sealed class CommunityEvent {
     data class SavePost(val postId: String) : CommunityEvent()
     data class UnsavePost(val postId: String) : CommunityEvent()
     data class ToggleSavePost(val postId: String) : CommunityEvent()
+    data class ToggleLikePost(val postId: String) : CommunityEvent()
     data class SelectPost(val post: FirestorePost) : CommunityEvent()
     object ClosePostDetail : CommunityEvent()
     data class UpdateNewCommentText(val text: String) : CommunityEvent()

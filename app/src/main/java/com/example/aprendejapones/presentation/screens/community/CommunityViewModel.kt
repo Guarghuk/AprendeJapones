@@ -77,6 +77,17 @@ class CommunityViewModel @Inject constructor(
                     _state.update { it.copy(savedPostIds = savedPostIds) }
                 }
         }
+
+        // Listen to liked post IDs in real-time
+        viewModelScope.launch {
+            communityRepository.getLikedPostIdsFlow()
+                .catch { error ->
+                    Log.e(TAG, "Error loading liked post IDs", error)
+                }
+                .collect { likedPostIds ->
+                    _state.update { it.copy(likedPostIds = likedPostIds) }
+                }
+        }
     }
 
     fun onEvent(event: CommunityEvent) {
@@ -84,6 +95,7 @@ class CommunityViewModel @Inject constructor(
             is CommunityEvent.LoadPosts -> { /* Posts are loaded automatically via Flow */ }
             is CommunityEvent.CreatePost -> createPost(event.content, event.category)
             is CommunityEvent.LikePost -> likePost(event.postId)
+            is CommunityEvent.ToggleLikePost -> toggleLikePost(event.postId)
             is CommunityEvent.SavePost -> savePost(event.postId)
             is CommunityEvent.UnsavePost -> unsavePost(event.postId)
             is CommunityEvent.ToggleSavePost -> toggleSavePost(event.postId)
@@ -135,6 +147,26 @@ class CommunityViewModel @Inject constructor(
             }
             result.onFailure { error ->
                 Log.e(TAG, "Error liking post", error)
+                _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
+            }
+        }
+    }
+
+    private fun toggleLikePost(postId: String) {
+        viewModelScope.launch {
+            val isLiked = _state.value.likedPostIds.contains(postId)
+
+            val result = if (isLiked) {
+                communityRepository.unlikePost(postId)
+            } else {
+                communityRepository.likePost(postId)
+            }
+
+            result.onSuccess {
+                val message = if (isLiked) "❤️ Like quitado" else "👍 Me gusta"
+                _effects.emit(CommunityEffect.ShowToast(message))
+            }
+            result.onFailure { error ->
                 _effects.emit(CommunityEffect.ShowToast("Error: ${error.message}"))
             }
         }
