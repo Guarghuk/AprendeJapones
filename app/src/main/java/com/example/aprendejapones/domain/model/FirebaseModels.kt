@@ -1,9 +1,57 @@
 package com.example.aprendejapones.domain.model
 
-import com.google.firebase.firestore.DocumentId
-import java.util.Date
+/**
+ * Usuario en Firestore (perfil público)
+ */
+data class UsuariosFirestore(
+    val id_usuario: String = "",
+    val nombre_usuario: String = "",
+    val foto_url: String? = null,
+    val rango: String = "初心者",
+    val nivel: Int = 1,
+    val biografia: String? = null,
+    val fecha_registro: Long = System.currentTimeMillis()
+)
 
-// Usuario en Firestore
+/**
+ * Publicación en Firestore
+ */
+data class Publicaciones(
+    val id_publicacion: String = "",
+    val id_autor: String = "",
+    val nombre_autor: String = "",
+    val contenido: String = "",
+    val categoria: String = "General",
+    val fecha_publicacion: Long = System.currentTimeMillis(),
+    val contador_likes: Int = 0,
+    val contador_comentarios: Int = 0
+)
+
+/**
+ * Comentario en Firestore
+ */
+data class Comentarios(
+    val id_comentario: String = "",
+    val id_publicacion: String = "",
+    val id_autor: String = "",
+    val nombre_autor: String = "",
+    val contenido: String = "",
+    val fecha_publicacion: Long = System.currentTimeMillis()
+)
+
+/**
+ * Like en Firestore
+ */
+data class Likes(
+    val id_usuario: String = "",
+    val fecha_reaccion: Long = System.currentTimeMillis()
+)
+
+// ============================================================
+// Legacy models for backward compatibility during migration
+// ============================================================
+
+// Usuario en Firestore (legacy - para compatibilidad)
 data class FirestoreUser(
     val id: String = "",
     val username: String = "",
@@ -20,7 +68,7 @@ data class FirestoreUser(
 
 )
 
-// Publicación
+// Publicación (legacy - para compatibilidad)
 data class FirestorePost(
     val id: String = "",
     val authorId: String = "",
@@ -37,7 +85,7 @@ data class FirestorePost(
     val savesCount: Int = 0
 )
 
-// Comentario
+// Comentario (legacy - para compatibilidad)
 data class FirestoreComment(
     val id: String = "",
     val postId: String = "",
@@ -49,14 +97,14 @@ data class FirestoreComment(
     val parentCommentId: String? = null  // Para respuestas
 )
 
-// Like
+// Like (legacy - para compatibilidad)
 data class FirestoreLike(
     val userId: String = "",
     val postId: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )
 
-// Saved Post (Bookmark)
+// Saved Post (Bookmark) (legacy - para compatibilidad)
 data class FirestoreSavedPost(
     val userId: String = "",
     val postId: String = "",
