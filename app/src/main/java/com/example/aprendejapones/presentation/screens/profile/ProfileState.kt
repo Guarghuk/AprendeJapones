@@ -32,16 +32,16 @@ data class ProfileState(
     val xpProgress: Float
         get() {
             val xp = user?.xp ?: 0
-            val maxXp = calculateMaxXP(user?.level ?: 1)
-            val currentLevelXp = xp % 100  // XP within current level
-            return if (maxXp > 0) currentLevelXp.toFloat() / 100f else 0f
+            // XP is stored as remaining XP within current level (0-99)
+            // Each level requires 100 XP
+            return if (XP_PER_LEVEL > 0) xp.toFloat() / XP_PER_LEVEL.toFloat() else 0f
         }
 
     val currentXP: Int
-        get() = (user?.xp ?: 0) % 100  // XP within current level
+        get() = user?.xp ?: 0  // XP within current level (0-99)
 
     val maxXP: Int
-        get() = 100  // Each level requires 100 XP
+        get() = XP_PER_LEVEL  // Each level requires 100 XP
 
     val memberSince: String
         get() = user?.createdAt?.let { dateFormat.format(Date(it)) } ?: "Enero 2025"
@@ -55,8 +55,8 @@ data class ProfileState(
     val totalAchievements: Int
         get() = achievements.size
 
-    private fun calculateMaxXP(level: Int): Int {
-        return 100 + (level - 1) * 50
+    companion object {
+        private const val XP_PER_LEVEL = 100
     }
 }
 
