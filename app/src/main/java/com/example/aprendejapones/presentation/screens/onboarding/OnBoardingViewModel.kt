@@ -33,9 +33,8 @@ class OnboardingViewModel @Inject constructor(
 
     private fun loadUserName() {
         viewModelScope.launch {
-            preferencesManager.userName.collect { name ->
-                _state.update { it.copy(userName = name ?: "") }
-            }
+            val name = preferencesManager.userName.first()
+            _state.update { it.copy(userName = name ?: "") }
         }
     }
 
@@ -43,10 +42,6 @@ class OnboardingViewModel @Inject constructor(
         when (event) {
             is OnboardingEvent.PageChanged -> {
                 _state.update { it.copy(currentPage = event.page) }
-            }
-            is OnboardingEvent.UserNameChanged -> {
-                // No se usa, el nombre ya viene del registro
-                _state.update { it.copy(userName = event.name) }
             }
             OnboardingEvent.CompleteOnboarding -> completeOnboarding()
             OnboardingEvent.SkipOnboarding -> skipOnboarding()
