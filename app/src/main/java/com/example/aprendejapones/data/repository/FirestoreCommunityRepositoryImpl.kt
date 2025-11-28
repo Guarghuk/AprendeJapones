@@ -2,7 +2,8 @@ package com.example.aprendejapones.data.repository
 
 import com.example.aprendejapones.domain.model.FirestoreComment
 import com.example.aprendejapones.domain.model.FirestoreLike
-import com.example. aprendejapones.domain. model.FirestorePost
+import com.example.aprendejapones.domain.model.FirestorePost
+import com.example.aprendejapones.domain.model.FirestoreSavedPost
 import com.example.aprendejapones.domain.model.FirestoreUser
 import com.example.aprendejapones.domain.repository.AuthRepository
 import com.example.aprendejapones.domain.repository.CommunityRepository
@@ -13,6 +14,8 @@ import kotlinx.coroutines. Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import javax.inject. Inject
@@ -226,6 +229,16 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     comment.reference.delete().await()
                 }
 
+                // Delete associated saved posts
+                val savedPosts = firestore.collection("saved_posts")
+                    .whereEqualTo("postId", postId)
+                    .get()
+                    .await()
+                
+                for (savedPost in savedPosts.documents) {
+                    savedPost.reference.delete().await()
+                }
+
                 Result.success(Unit)
             } catch (e: Exception) {
                 Result.failure(e)
@@ -237,26 +250,22 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val userId = authRepository.getCurrentUserId()
-                    ?: return@withContext Result. failure(Exception("Not logged in"))
+                    ?: return@withContext Result.failure(Exception("Not logged in"))
 
-                val saveId = "${userId}_${postId}"
+                val savedPostId = "${userId}_${postId}"
 
-                val save = mapOf(
-                    "userId" to userId,
-                    "postId" to postId,
-                    "createdAt" to System.currentTimeMillis()
-                )
+                // Create saved post record
+                val savedPost = FirestoreSavedPost(userId, postId, System.currentTimeMillis())
+                firestore.collection("saved_posts").document(savedPostId).set(savedPost).await()
 
-                firestore.collection("saved_posts")
-                    .document(saveId)
-                    .set(save)
+                // Increment saves counter on post
+                firestore.collection("posts").document(postId)
+                    .update("savesCount", FieldValue.increment(1))
                     .await()
 
-                android.util.Log.d("FirestoreCommunity", "Post saved: $postId")
                 Result.success(Unit)
             } catch (e: Exception) {
-                android. util.Log.e("FirestoreCommunity", "Error saving post", e)
-                Result. failure(e)
+                Result.failure(e)
             }
         }
     }
@@ -265,20 +274,31 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
         return withContext(Dispatchers.IO) {
             try {
                 val userId = authRepository.getCurrentUserId()
-                    ?: return@withContext Result. failure(Exception("Not logged in"))
+                    ?: return@withContext Result.failure(Exception("Not logged in"))
 
-                val saveId = "${userId}_${postId}"
+                val savedPostId = "${userId}_${postId}"
 
-                firestore.collection("saved_posts")
-                    .document(saveId)
-                    .delete()
-                    .await()
+                // Check if the save record exists before deleting
+                val savedPostDoc = firestore.collection("saved_posts").document(savedPostId).get().await()
+                if (!savedPostDoc.exists()) {
+                    return@withContext Result.success(Unit) // Already unsaved
+                }
 
-                android.util.Log. d("FirestoreCommunity", "Post unsaved: $postId")
+                // Delete saved post record
+                firestore.collection("saved_posts").document(savedPostId).delete().await()
+
+                // Decrement saves counter on post (only if current count > 0)
+                val postDoc = firestore.collection("posts").document(postId).get().await()
+                val currentSavesCount = postDoc.getLong("savesCount") ?: 0
+                if (currentSavesCount > 0) {
+                    firestore.collection("posts").document(postId)
+                        .update("savesCount", FieldValue.increment(-1))
+                        .await()
+                }
+
                 Result.success(Unit)
             } catch (e: Exception) {
-                android.util.Log.e("FirestoreCommunity", "Error unsaving post", e)
-                Result. failure(e)
+                Result.failure(e)
             }
         }
     }
@@ -286,20 +306,28 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
     override suspend fun hasUserSavedPost(postId: String): Boolean = withContext(Dispatchers.IO) {
         try {
             val userId = authRepository.getCurrentUserId() ?: return@withContext false
-            val saveId = "${userId}_${postId}"
-            val doc = firestore.collection("saved_posts").document(saveId).get().await()
+            val savedPostId = "${userId}_${postId}"
+            val doc = firestore.collection("saved_posts").document(savedPostId).get().await()
             doc.exists()
         } catch (e: Exception) {
             false
         }
     }
 
-    override fun getUserLikedPostsFlow(userId: String): Flow<List<String>> = callbackFlow {
-        val listener = firestore.collection("likes")
-            . whereEqualTo("userId", userId)
+    override fun getSavedPostsFlow(): Flow<List<FirestorePost>> = callbackFlow {
+        val userId = authRepository.getCurrentUserId()
+        if (userId == null) {
+            trySend(emptyList())
+            awaitClose { }
+            return@callbackFlow
+        }
+
+        val listener = firestore.collection("saved_posts")
+            .whereEqualTo("userId", userId)
+            .orderBy("createdAt", Query.Direction.DESCENDING)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    trySend(emptyList())
                     return@addSnapshotListener
                 }
 
@@ -307,55 +335,73 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
                     it.getString("postId")
                 } ?: emptyList()
 
-                trySend(postIds)
+                if (postIds.isEmpty()) {
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+
+                // Fetch posts in batches of 10 (Firestore whereIn limit)
+                val allPosts = mutableListOf<FirestorePost>()
+                val batches = postIds.chunked(10)
+                var completedBatches = 0
+
+                for (batch in batches) {
+                    firestore.collection("posts")
+                        .whereIn("__name__", batch)
+                        .get()
+                        .addOnSuccessListener { postsSnapshot ->
+                            val posts = postsSnapshot.documents.mapNotNull {
+                                it.toObject(FirestorePost::class.java)?.copy(id = it.id)
+                            }
+                            allPosts.addAll(posts)
+                            completedBatches++
+
+                            // When all batches are done, sort and send
+                            if (completedBatches == batches.size) {
+                                // Sort by saved order (original postIds order)
+                                val sortedPosts = postIds.mapNotNull { postId ->
+                                    allPosts.find { it.id == postId }
+                                }
+                                trySend(sortedPosts)
+                            }
+                        }
+                        .addOnFailureListener {
+                            completedBatches++
+                            if (completedBatches == batches.size) {
+                                // Sort by saved order even with partial results
+                                val sortedPosts = postIds.mapNotNull { postId ->
+                                    allPosts.find { it.id == postId }
+                                }
+                                trySend(sortedPosts)
+                            }
+                        }
+                }
             }
 
         awaitClose { listener.remove() }
     }
 
-    override fun getUserSavedPostsFlow(userId: String): Flow<List<String>> = callbackFlow {
+    override fun getSavedPostIdsFlow(): Flow<Set<String>> = callbackFlow {
+        val userId = authRepository.getCurrentUserId()
+        if (userId == null) {
+            trySend(emptySet())
+            awaitClose { }
+            return@callbackFlow
+        }
+
         val listener = firestore.collection("saved_posts")
             .whereEqualTo("userId", userId)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    trySend(emptySet())
                     return@addSnapshotListener
                 }
 
-                val postIds = snapshot?. documents?.mapNotNull {
+                val postIds = snapshot?.documents?.mapNotNull {
                     it.getString("postId")
-                } ?: emptyList()
+                }?.toSet() ?: emptySet()
 
                 trySend(postIds)
-            }
-
-        awaitClose { listener.remove() }
-    }
-
-    override suspend fun getPost(postId: String): FirestorePost? = withContext(Dispatchers.IO) {
-        try {
-            val doc = firestore.collection("posts"). document(postId).get().await()
-            doc.toObject(FirestorePost::class.java)?. copy(id = doc.id)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    override fun getUserPostsFlow(userId: String): Flow<List<FirestorePost>> = callbackFlow {
-        val listener = firestore.collection("posts")
-            .whereEqualTo("authorId", userId)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
-            .addSnapshotListener { snapshot, error ->
-                if (error != null) {
-                    close(error)
-                    return@addSnapshotListener
-                }
-
-                val posts = snapshot?.documents?.mapNotNull {
-                    it.toObject(FirestorePost::class.java)?.copy(id = it. id)
-                } ?: emptyList()
-
-                trySend(posts)
             }
 
         awaitClose { listener.remove() }

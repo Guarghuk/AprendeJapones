@@ -48,11 +48,28 @@ interface CommunityRepository {
      */
     suspend fun deletePost(postId: String): Result<Unit>
 
+    /**
+     * Save/bookmark a post
+     */
     suspend fun savePost(postId: String): Result<Unit>
+
+    /**
+     * Unsave/remove bookmark from a post
+     */
     suspend fun unsavePost(postId: String): Result<Unit>
+
+    /**
+     * Check if user has saved a post
+     */
     suspend fun hasUserSavedPost(postId: String): Boolean
-    fun getUserLikedPostsFlow(userId: String): Flow<List<String>>
-    fun getUserSavedPostsFlow(userId: String): Flow<List<String>>
-    suspend fun getPost(postId: String): FirestorePost?
-    fun getUserPostsFlow(userId: String): Flow<List<FirestorePost>>
+
+    /**
+     * Get saved posts for current user
+     */
+    fun getSavedPostsFlow(): Flow<List<FirestorePost>>
+
+    /**
+     * Get set of saved post IDs for current user
+     */
+    fun getSavedPostIdsFlow(): Flow<Set<String>>
 }
