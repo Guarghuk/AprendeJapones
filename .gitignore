@@ -13,3 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Cloud Functions
+functions/node_modules/
+functions/lib/
