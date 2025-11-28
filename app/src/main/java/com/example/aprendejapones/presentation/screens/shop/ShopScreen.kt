@@ -233,11 +233,11 @@ private fun ShopHeader(
                     )
                 }
                 
-                HorizontalDivider(
+                Box(
                     modifier = Modifier
+                        .width(1.dp)
                         .height(40.dp)
-                        .width(1.dp),
-                    color = BorderGray
+                        .background(BorderGray)
                 )
                 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

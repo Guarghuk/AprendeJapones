@@ -3,6 +3,7 @@ package com.example.aprendejapones.presentation.screens.reminders
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.aprendejapones.data.local.preferences.PreferencesManager
+import com.example.aprendejapones.notification.NotificationHelper
 import com.example.aprendejapones.workers.WorkManagerScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,8 @@ import kotlinx.coroutines.flow.first
 @HiltViewModel
 class RemindersViewModel @Inject constructor(
     private val preferencesManager: PreferencesManager,
-    private val workManagerScheduler: WorkManagerScheduler
+    private val workManagerScheduler: WorkManagerScheduler,
+    private val notificationHelper: NotificationHelper
 ): ViewModel() {
 
     companion object {
@@ -94,17 +96,20 @@ class RemindersViewModel @Inject constructor(
     }
 
     /**
-     * Test notification for debugging
+     * Test notification for debugging.
+     * Note: NotificationHelper internally checks for POST_NOTIFICATIONS permission
+     * and returns early if not granted, so this is safe to call.
      */
     private fun testNotification() {
         viewModelScope.launch {
             try {
                 val useMotivational = _state.value.motivationalMessages
-                // This will trigger a test notification immediately
                 _effects.emit(RemindersEffect.ShowToast("Enviando notificación de prueba..."))
                 
-                // Emit a special effect to trigger notification from UI with proper permissions
-                _effects.emit(RemindersEffect.TriggerTestNotification(useMotivational))
+                // NotificationHelper has internal permission check - will silently return if no permission
+                notificationHelper.showDailyReminder(useMotivational)
+                
+                _effects.emit(RemindersEffect.ShowToast("¡Notificación enviada!"))
             } catch (e: Exception) {
                 _effects.emit(RemindersEffect.ShowToast("Error al enviar notificación: ${e.message}"))
             }
