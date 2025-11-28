@@ -415,6 +415,33 @@ class FirestoreCommunityRepositoryImpl @Inject constructor(
         awaitClose { listener.remove() }
     }
 
+    override fun getLikedPostIdsFlow(): Flow<Set<String>> = callbackFlow {
+        val userId = authRepository.getCurrentUserId()
+        if (userId == null) {
+            trySend(emptySet())
+            awaitClose { }
+            return@callbackFlow
+        }
+
+        val listener = firestore.collection("likes")
+            .whereEqualTo("userId", userId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    android.util.Log.e("FirestoreCommunity", "Error loading liked post IDs", error)
+                    trySend(emptySet())
+                    return@addSnapshotListener
+                }
+
+                val postIds = snapshot?.documents?.mapNotNull {
+                    it.getString("postId")
+                }?.toSet() ?: emptySet()
+
+                trySend(postIds)
+            }
+
+        awaitClose { listener.remove() }
+    }
+
     /**
      * Helper method to get user profile
      */

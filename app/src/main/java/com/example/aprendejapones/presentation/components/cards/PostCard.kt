@@ -33,6 +33,7 @@ fun PostCard(
     post: FirestorePost,
     modifier: Modifier = Modifier,
     isSaved: Boolean = false,
+    isLiked: Boolean = false,
     onLike: (String) -> Unit = {},
     onSave: (String) -> Unit = {},
     onCommentClick: (FirestorePost) -> Unit = {},
@@ -134,14 +135,14 @@ fun PostCard(
             ) {
                 Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
                     ActionButton(
-                        icon = if (post.isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                        text = post.likes.size.toString(),
+                        icon = if (isLiked) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
+                        text = post.likesCount.toString(),
                         onClick = { onLike(post.id) },
-                        tint = if (post.isLiked) Color.Red else TextTertiary
+                        tint = if (isLiked) Color.Red else TextTertiary
                     )
                     ActionButton(
                         icon = Icons.Outlined.Comment,
-                        text = post.comments.size.toString(),
+                        text = post.commentsCount.toString(),
                         onClick = { onCommentClick(post) }
                     )
                 }

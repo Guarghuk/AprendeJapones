@@ -106,10 +106,11 @@ fun CommunityScreen(
                         isLoadingComments = state.isLoadingComments,
                         newCommentText = state.newCommentText,
                         isSaved = state.savedPostIds.contains(post.id),
+                        isLiked = state.likedPostIds.contains(post.id),
                         onClose = { viewModel.onEvent(CommunityEvent.ClosePostDetail) },
                         onCommentTextChange = { viewModel.onEvent(CommunityEvent.UpdateNewCommentText(it)) },
                         onSendComment = { viewModel.onEvent(CommunityEvent.AddComment(post.id)) },
-                        onLike = { viewModel.onEvent(CommunityEvent.LikePost(post.id)) },
+                        onLike = { viewModel.onEvent(CommunityEvent.ToggleLikePost(post.id)) },
                         onSave = { viewModel.onEvent(CommunityEvent. ToggleSavePost(post. id)) },
                         onNavigateToProfile = onNavigateToProfile
                     )
@@ -181,7 +182,8 @@ private fun CommunityContent(
                     PostCard(
                         post = post,
                         isSaved = state.savedPostIds.contains(post.id),
-                        onLike = { postId -> onEvent(CommunityEvent.LikePost(postId)) },
+                        isLiked = state.likedPostIds.contains(post.id),
+                        onLike = { postId -> onEvent(CommunityEvent.ToggleLikePost(postId)) },
                         onSave = { postId -> onEvent(CommunityEvent.ToggleSavePost(postId)) },
                         onCommentClick = { onEvent(CommunityEvent.SelectPost(it)) },
                         onProfileClick = onNavigateToProfile
@@ -344,6 +346,7 @@ private fun PostDetailOverlay(
     isLoadingComments: Boolean,
     newCommentText: String,
     isSaved: Boolean,
+    isLiked: Boolean,
     onClose: () -> Unit,
     onCommentTextChange: (String) -> Unit,
     onSendComment: () -> Unit,
@@ -395,6 +398,7 @@ private fun PostDetailOverlay(
                     PostDetailContent(
                         post = post,
                         isSaved = isSaved,
+                        isLiked = isLiked,
                         onLike = onLike,
                         onSave = onSave,
                         onNavigateToProfile = onNavigateToProfile
@@ -495,6 +499,7 @@ private fun PostDetailOverlay(
 private fun PostDetailContent(
     post: FirestorePost,
     isSaved: Boolean,
+    isLiked: Boolean,
     onLike: () -> Unit,
     onSave: () -> Unit,
     onNavigateToProfile: (String) -> Unit = {}
@@ -576,7 +581,13 @@ private fun PostDetailContent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
-            StatItem(emoji = "👍", count = post.likesCount, label = likesLabel, onClick = onLike)
+            StatItem(
+                emoji = if (isLiked) "❤️" else "👍",
+                count = post.likesCount,
+                label = likesLabel,
+                onClick = onLike,
+                isHighlighted = isLiked
+            )
             StatItem(emoji = "💬", count = post.commentsCount, label = commentsLabel)
             StatItem(emoji = "🔖", count = post.savesCount, label = savesLabel)
             StatItem(
