@@ -1,20 +1,25 @@
 package com.example.aprendejapones.presentation.screens.profile
 
-import com.example.aprendejapones.domain.model.User
+import com.example.aprendejapones.domain.model.FirestoreUser
 import com.example.aprendejapones.utils.Achievement
 import com.example.aprendejapones.utils.Activity
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Estado de la pantalla Profile
  */
 data class ProfileState(
-    val user: User? = null,
+    val user: FirestoreUser? = null,
     val stats: ProfileStats = ProfileStats(),
     val achievements: List<Achievement> = emptyList(),
     val recentActivity: List<Activity> = emptyList(),
     val isLoading: Boolean = true,
     val error: String? = null
 ) {
+    private val dateFormat = SimpleDateFormat("MMMM yyyy", Locale("es", "ES"))
+
     val username: String
         get() = user?.username ?: "Usuario"
 
@@ -25,16 +30,21 @@ data class ProfileState(
         get() = user?.level ?: 1
 
     val xpProgress: Float
-        get() = user?.xpProgress ?: 0f
+        get() {
+            val xp = user?.xp ?: 0
+            // XP is stored as remaining XP within current level (0-99)
+            // Each level requires 100 XP
+            return if (XP_PER_LEVEL > 0) xp.toFloat() / XP_PER_LEVEL.toFloat() else 0f
+        }
 
     val currentXP: Int
-        get() = user?.currentXP ?: 0
+        get() = user?.xp ?: 0  // XP within current level (0-99)
 
     val maxXP: Int
-        get() = user?.maxXP ?: 100
+        get() = XP_PER_LEVEL  // Each level requires 100 XP
 
     val memberSince: String
-        get() = user?.memberSince ?: "Enero 2025"
+        get() = user?.createdAt?.let { dateFormat.format(Date(it)) } ?: "Enero 2025"
     
     val drops: Int
         get() = user?.drops ?: 0
@@ -44,6 +54,10 @@ data class ProfileState(
 
     val totalAchievements: Int
         get() = achievements.size
+
+    companion object {
+        private const val XP_PER_LEVEL = 100
+    }
 }
 
 /**

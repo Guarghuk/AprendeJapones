@@ -57,8 +57,22 @@ class AuthRepositoryImpl @Inject constructor(
                 Exception("User is null")
             )
 
-            // Obtener datos de Firestore
-            val firestoreUser = getUserFromFirestore(user.uid)
+            // Check if user exists in Firestore, if not create profile
+            val existingUser = try {
+                getUserFromFirestore(user.uid)
+            } catch (e: Exception) {
+                null
+            }
+
+            val firestoreUser = existingUser ?: run {
+                val newUser = user.toFirestoreUser()
+                firestore.collection("users")
+                    .document(user.uid)
+                    .set(newUser)
+                    .await()
+                newUser
+            }
+
             Result.success(firestoreUser)
         } catch (e: Exception) {
             Result.failure(e)
