@@ -15,18 +15,86 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/**
+ * ViewModel para las pantallas de autenticación (Login y Register).
+ *
+ * Gestiona el estado y la lógica de negocio para el flujo de autenticación
+ * de usuarios, incluyendo login con email/contraseña, registro de nuevos
+ * usuarios y autenticación con Google.
+ *
+ * ## Arquitectura MVI
+ * - **Model:** [AuthState] representa el estado del formulario
+ * - **View:** Composables (LoginScreen, RegisterScreen)
+ * - **Intent:** [AuthEvent] representa las acciones del usuario
+ *
+ * ## Flujos
+ * - [state]: Estado observable del formulario
+ * - [effects]: Eventos de una sola vez (navegación, toasts)
+ *
+ * ## Funcionalidades
+ * - Login con email y contraseña
+ * - Registro con email, contraseña y nombre de usuario
+ * - Login con Google Sign-In
+ * - Logout
+ * - Validación de formulario en tiempo real
+ *
+ * ## Uso
+ *
+ * ```kotlin
+ * @Composable
+ * fun LoginScreen(viewModel: AuthViewModel = hiltViewModel()) {
+ *     val state by viewModel.state.collectAsState()
+ *
+ *     LaunchedEffect(Unit) {
+ *         viewModel.effects.collect { effect ->
+ *             when (effect) {
+ *                 is AuthEffect.LoginSuccess -> navigateToHome()
+ *                 is AuthEffect.ShowError -> showError(effect.message)
+ *             }
+ *         }
+ *     }
+ *
+ *     TextField(
+ *         value = state.email,
+ *         onValueChange = { viewModel.onEvent(AuthEvent.EmailChanged(it)) }
+ *     )
+ *     // ...
+ * }
+ * ```
+ *
+ * @property authRepository Repositorio para operaciones de autenticación.
+ * @property preferencesManager Manager para guardar preferencias del usuario.
+ *
+ * @see AuthState Estado del formulario de autenticación.
+ * @see AuthEvent Eventos del usuario.
+ * @see AuthEffect Efectos secundarios (navegación, mensajes).
+ *
+ * @author Kotodama Team
+ * @since 1.0.0
+ */
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val preferencesManager: PreferencesManager
 ) : ViewModel() {
 
+    /** Estado mutable interno del formulario */
     private val _state = MutableStateFlow(AuthState())
+
+    /** Estado público e inmutable para la UI */
     val state: StateFlow<AuthState> = _state.asStateFlow()
 
+    /** Flujo mutable de efectos secundarios */
     private val _effects = MutableSharedFlow<AuthEffect>()
+
+    /** Efectos públicos para eventos de una sola vez */
     val effects: SharedFlow<AuthEffect> = _effects.asSharedFlow()
 
+    /**
+     * Procesa los eventos de la UI.
+     *
+     * @param event El evento a procesar.
+     */
     fun onEvent(event: AuthEvent) {
         when (event) {
             is AuthEvent.EmailChanged -> updateEmail(event.email)
@@ -44,30 +112,55 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Actualiza el campo de email en el estado.
+     */
     private fun updateEmail(email: String) {
         _state.update { it.copy(email = email) }
     }
 
+    /**
+     * Actualiza el campo de contraseña en el estado.
+     */
     private fun updatePassword(password: String) {
         _state.update { it.copy(password = password) }
     }
 
+    /**
+     * Actualiza el campo de nombre de usuario en el estado.
+     */
     private fun updateUsername(username: String) {
         _state.update { it.copy(username = username) }
     }
 
+    /**
+     * Actualiza el campo de confirmación de contraseña.
+     */
     private fun updateConfirmPassword(confirmPassword: String) {
         _state.update { it.copy(confirmPassword = confirmPassword) }
     }
 
+    /**
+     * Alterna la visibilidad de la contraseña.
+     */
     private fun togglePasswordVisibility() {
         _state.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
     }
 
+    /**
+     * Alterna la visibilidad de la confirmación de contraseña.
+     */
     private fun toggleConfirmPasswordVisibility() {
         _state.update { it.copy(isConfirmPasswordVisible = !it.isConfirmPasswordVisible) }
     }
 
+    /**
+     * Inicia sesión con email y contraseña.
+     *
+     * Valida el formulario antes de intentar el login.
+     * En caso de éxito, emite [AuthEffect.LoginSuccess].
+     * En caso de error, actualiza el estado con el mensaje de error.
+     */
     private fun login() {
         if (!_state.value.isLoginValid) {
             _state.update { it.copy(errorMessage = "Por favor, completa todos los campos") }
@@ -100,6 +193,13 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Registra un nuevo usuario con email, contraseña y nombre.
+     *
+     * Valida todos los campos del formulario antes de intentar el registro.
+     * Proporciona mensajes de error específicos según el campo inválido.
+     * En caso de éxito, guarda el nombre de usuario y emite [AuthEffect.RegisterSuccess].
+     */
     private fun register() {
         if (!_state.value.isRegisterValid) {
             val errorMessage = when {
@@ -142,6 +242,11 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Inicia sesión con Google Sign-In.
+     *
+     * @param idToken Token de ID obtenido del proceso de Google Sign-In.
+     */
     private fun googleSignIn(idToken: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
@@ -166,6 +271,11 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Cierra la sesión del usuario actual.
+     *
+     * Limpia el formulario y emite [AuthEffect.LogoutSuccess].
+     */
     private fun logout() {
         viewModelScope.launch {
             authRepository.logout()
@@ -174,10 +284,18 @@ class AuthViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Descarta el mensaje de error actual.
+     */
     private fun dismissError() {
         _state.update { it.copy(errorMessage = null) }
     }
 
+    /**
+     * Limpia todos los campos del formulario.
+     *
+     * Restablece el estado a valores por defecto.
+     */
     private fun clearForm() {
         _state.update { 
             AuthState()

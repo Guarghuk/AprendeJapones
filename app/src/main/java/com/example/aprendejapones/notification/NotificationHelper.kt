@@ -19,7 +19,39 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Helper para crear y mostrar notificaciones
+ * Helper para crear y mostrar notificaciones de la aplicación.
+ *
+ * Esta clase centraliza toda la lógica de notificaciones, incluyendo
+ * la creación de canales de notificación (requerido para Android 8.0+),
+ * verificación de permisos y construcción de notificaciones.
+ *
+ * ## Canales de Notificación
+ * - **kotodama_reminders:** Recordatorios de estudio (prioridad normal)
+ * - **kotodama_streak:** Alertas de racha en peligro (prioridad alta)
+ *
+ * ## Tipos de Notificaciones
+ * - **Recordatorio diario:** Mensaje estándar o motivacional
+ * - **Alerta de racha:** Cuando la racha está en peligro de perderse
+ *
+ * ## Permisos
+ * Requiere `POST_NOTIFICATIONS` en Android 13+ (TIRAMISU).
+ *
+ * ## Uso
+ *
+ * ```kotlin
+ * // En un Worker o Service
+ * notificationHelper.showDailyReminder(motivationalMessage = true)
+ *
+ * // Alerta de racha
+ * notificationHelper.showStreakWarning(currentStreak = 7)
+ * ```
+ *
+ * @property context Contexto de aplicación para operaciones de notificación.
+ *
+ * @see ReminderWorker Usa este helper para enviar recordatorios.
+ *
+ * @author Kotodama Team
+ * @since 1.0.0
  */
 @Singleton
 class NotificationHelper @Inject constructor(
@@ -27,14 +59,31 @@ class NotificationHelper @Inject constructor(
 ) {
 
     companion object {
+        // ============ Canal de Recordatorios ============
+
+        /** ID del canal de recordatorios de estudio */
         private const val CHANNEL_ID = "kotodama_reminders"
+
+        /** Nombre visible del canal de recordatorios */
         private const val CHANNEL_NAME = "Recordatorios de Estudio"
+
+        /** Descripción del canal de recordatorios */
         private const val CHANNEL_DESCRIPTION = "Notificaciones para recordarte estudiar japonés"
 
+        // ============ Canal de Racha ============
+
+        /** ID del canal de alertas de racha */
         private const val STREAK_CHANNEL_ID = "kotodama_streak"
+
+        /** Nombre visible del canal de racha */
         private const val STREAK_CHANNEL_NAME = "Alertas de Racha"
 
+        // ============ IDs de Notificación ============
+
+        /** ID para notificaciones de recordatorio */
         private const val NOTIFICATION_ID_REMINDER = 1001
+
+        /** ID para notificaciones de racha */
         private const val NOTIFICATION_ID_STREAK = 1002
     }
 
@@ -43,7 +92,10 @@ class NotificationHelper @Inject constructor(
     }
 
     /**
-     * Crea los canales de notificación necesarios (Android 8.0+)
+     * Crea los canales de notificación necesarios.
+     *
+     * Requerido para Android 8.0 (Oreo) y superior. Define las
+     * características de las notificaciones como importancia y vibración.
      */
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -74,7 +126,12 @@ class NotificationHelper @Inject constructor(
     }
 
     /**
-     * Muestra notificación de recordatorio diario
+     * Muestra una notificación de recordatorio diario.
+     *
+     * Al tocar la notificación, abre la aplicación en la pantalla principal.
+     *
+     * @param motivationalMessage Si es `true`, usa un mensaje motivacional
+     *        aleatorio en lugar del mensaje estándar.
      */
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     fun showDailyReminder(motivationalMessage: Boolean = false) {
@@ -114,7 +171,12 @@ class NotificationHelper @Inject constructor(
     }
 
     /**
-     * Muestra notificación de alerta de racha
+     * Muestra una notificación de alerta de racha en peligro.
+     *
+     * Usa prioridad alta para asegurar que el usuario la vea.
+     * Incluye el número de días de la racha actual.
+     *
+     * @param currentStreak Número de días de la racha actual.
      */
     @RequiresPermission(Manifest.permission.POST_NOTIFICATIONS)
     fun showStreakWarning(currentStreak: Int) {
@@ -150,7 +212,12 @@ class NotificationHelper @Inject constructor(
     }
 
     /**
-     * Verifica si tenemos permiso de notificaciones
+     * Verifica si la aplicación tiene permiso para enviar notificaciones.
+     *
+     * En Android 13+ se requiere el permiso `POST_NOTIFICATIONS`.
+     * En versiones anteriores, siempre retorna `true`.
+     *
+     * @return `true` si tiene permiso, `false` en caso contrario.
      */
     private fun hasNotificationPermission(): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -164,7 +231,12 @@ class NotificationHelper @Inject constructor(
     }
 
     /**
-     * Obtiene un mensaje motivacional aleatorio
+     * Obtiene un mensaje motivacional aleatorio.
+     *
+     * Usado cuando el usuario activa mensajes motivacionales
+     * en la configuración de recordatorios.
+     *
+     * @return Mensaje motivacional aleatorio en español.
      */
     private fun getMotivationalMessage(): String {
         val messages = listOf(
