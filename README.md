@@ -33,11 +33,10 @@ Nuestra aplicación está dirigida a estudiantes universitarios, profesionales i
 |:--------------|:------------|
 | 🎌 **Sistema de Escritura Completo** | Aprende Hiragana, Katakana y los Kanji más utilizados con trazos animados, pronunciación nativa y ejercicios de reconocimiento. |
 | 🎮 **Gamificación Inteligente** | Sistema de puntos, rachas diarias, logros desbloqueables y niveles de progresión que mantienen la motivación del usuario. |
-| 🔊 **Audio Nativo Integrado** | Pronunciación grabada por hablantes nativos japoneses para cada palabra, frase y expresión dentro de la aplicación. |
+| 🏯 **Comunidad Integrada** | Comunidad virtual en la cual los usuarios pueden ayudarse a entender lecciones, preguntar sobre cultura y expresión dentro de la aplicación. |
 | 📚 **Lecciones Contextualizadas** | Contenido organizado por situaciones reales: presentaciones, restaurantes, transporte, compras y conversaciones cotidianas. |
 | 📊 **Seguimiento de Progreso** | Dashboard personalizado con estadísticas de aprendizaje, áreas de mejora identificadas y recomendaciones adaptativas. |
-| 🌙 **Modo Oscuro Nativo** | Interfaz adaptable con soporte completo para tema claro y oscuro, optimizando la experiencia visual del usuario. |
-| 💾 **Funcionalidad Offline** | Descarga lecciones para estudiar sin conexión a internet, ideal para transporte público o viajes. |
+| 💾 **Funcionalidad Offline** | Lecciones para estudiar sin conexión a internet, ideal para transporte público o viajes. |
 
 ---
 
@@ -476,7 +475,7 @@ Se realizó una fase de validación con usuarios reales para evaluar la usabilid
 |:--------|:----------|
 | **Participantes** | 10 usuarios |
 | **Perfil demográfico** | Estudiantes universitarios (18-25 años) |
-| **Duración de prueba** | 2 semanas por usuario |
+| **Duración de prueba** | 1 dia por usuario |
 | **Calificación promedio** | ⭐ **4.5 / 5.0** |
 
 ### Resultados Detallados
@@ -569,31 +568,15 @@ Se realizó una fase de validación con usuarios reales para evaluar la usabilid
 
 ---
 
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Consulta el archivo [LICENSE](LICENSE) para más detalles.
-
-```
-MIT License
-
-Copyright (c) 2025 Equipo Kotodama
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction...
-```
-
----
-
 <div align="center">
 
 ### 🌸 ありがとうございます (¡Gracias!)
 
 *Desarrollado con ❤️ para la comunidad hispanohablante*
 
-**Universidad — Desarrollo de Aplicaciones Móviles**
+**Universidad Tecnologica del Norte de Guanajuato — Desarrollo de Aplicaciones Móviles**
 
-*Semestre 2025*
+*Cuatrimeste 4 - 2025*
 
 ---
 
