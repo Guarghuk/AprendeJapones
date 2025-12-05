@@ -221,27 +221,10 @@ class QuizViewModel(
 
 ---
 
-## 🤝 Contribución
+## 👤 Autores
 
-Las contribuciones son bienvenidas. Por favor, sigue estos pasos:
-
-1. Haz fork del proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/NuevaCaracteristica`)
-3. Commit tus cambios (`git commit -m 'Añade nueva característica'`)
-4. Push a la rama (`git push origin feature/NuevaCaracteristica`)
-5. Abre un Pull Request
-
----
-
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
-
----
-
-## 👤 Autor
-
-**Guarghuk**
+**Guarghuk (José Enrique Ramírez Guerrero)**
+**ALTMAXXUS (José Emmanuel Rodríguez Arvizu)**
 
 - GitHub: [@Guarghuk](https://github.com/Guarghuk)
 
