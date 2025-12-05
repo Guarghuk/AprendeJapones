@@ -9,7 +9,40 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Scheduler para programar Workers periódicos
+ * Scheduler para programar Workers periódicos con WorkManager.
+ *
+ * Esta clase centraliza la configuración y programación de todos los
+ * workers de la aplicación, incluyendo verificación de racha y
+ * recordatorios de estudio.
+ *
+ * ## Workers Gestionados
+ * - [StreakWorker]: Verificación diaria de racha (medianoche)
+ * - [ReminderWorker]: Recordatorios según configuración del usuario
+ *
+ * ## Características
+ * - Cálculo automático de delay hasta la hora programada
+ * - Uso de políticas `KEEP` y `REPLACE` según el caso
+ * - Soporte para múltiples días de la semana
+ *
+ * ## Uso
+ *
+ * ```kotlin
+ * // En KotodamaApplication
+ * @Inject lateinit var workManagerScheduler: WorkManagerScheduler
+ *
+ * override fun onCreate() {
+ *     super.onCreate()
+ *     workManagerScheduler.scheduleStreakCheck()
+ * }
+ * ```
+ *
+ * @property context Contexto de aplicación para acceder a WorkManager.
+ *
+ * @see StreakWorker Worker de verificación de racha.
+ * @see ReminderWorker Worker de recordatorios.
+ *
+ * @author Kotodama Team
+ * @since 1.0.0
  */
 @Singleton
 class WorkManagerScheduler @Inject constructor(
@@ -17,7 +50,15 @@ class WorkManagerScheduler @Inject constructor(
 ) {
 
     /**
-     * Programa la verificación diaria de racha a medianoche
+     * Programa la verificación diaria de racha a medianoche.
+     *
+     * Usa `PeriodicWorkRequest` con intervalo de 1 día. Si el trabajo
+     * ya existe, no lo reemplaza (política KEEP).
+     *
+     * ## Configuración
+     * - Intervalo: 24 horas
+     * - Hora de ejecución: Medianoche (00:00:00)
+     * - Política: No reemplazar si ya existe
      */
     fun scheduleStreakCheck() {
         val constraints = Constraints.Builder()
@@ -56,13 +97,22 @@ class WorkManagerScheduler @Inject constructor(
     }
 
     /**
-     * Cancela la verificación de racha
+     * Cancela la verificación periódica de racha.
      */
     fun cancelStreakCheck() {
         WorkManager.getInstance(context).cancelUniqueWork(STREAK_WORK_NAME)
     }
+
     /**
-     * Programa recordatorios diarios según la configuración del usuario
+     * Programa recordatorios diarios según la configuración del usuario.
+     *
+     * Crea un [ReminderWorker] para cada día seleccionado, programado
+     * para la hora especificada.
+     *
+     * @param hour Hora del recordatorio (0-23).
+     * @param minute Minuto del recordatorio (0-59).
+     * @param selectedDays Set de días en español ("Lunes", "Martes", etc.).
+     * @param motivationalMessages Si debe usar mensajes motivacionales.
      */
     fun scheduleReminders(
         hour: Int,
@@ -82,7 +132,12 @@ class WorkManagerScheduler @Inject constructor(
     }
 
     /**
-     * Programa un recordatorio para un día específico
+     * Programa un recordatorio para un día específico de la semana.
+     *
+     * @param dayOfWeek Día de la semana según [Calendar] (ej: Calendar.MONDAY).
+     * @param hour Hora del recordatorio (0-23).
+     * @param minute Minuto del recordatorio (0-59).
+     * @param motivationalMessages Si debe usar mensajes motivacionales.
      */
     private fun scheduleReminderForDay(
         dayOfWeek: Int,
@@ -123,14 +178,17 @@ class WorkManagerScheduler @Inject constructor(
     }
 
     /**
-     * Cancela todos los recordatorios programados
+     * Cancela todos los recordatorios programados.
      */
     fun cancelReminders() {
         WorkManager.getInstance(context).cancelAllWorkByTag(REMINDER_WORK_TAG)
     }
 
     /**
-     * Convierte nombre de día a número (Calendar.DAY_OF_WEEK)
+     * Convierte el nombre de un día en español a su valor de [Calendar].
+     *
+     * @param dayName Nombre del día en español.
+     * @return Valor de Calendar.DAY_OF_WEEK o `null` si no es válido.
      */
     private fun dayNameToDayNumber(dayName: String): Int? {
         return when (dayName) {
@@ -147,11 +205,16 @@ class WorkManagerScheduler @Inject constructor(
 
 
     companion object {
+        /** Nombre único del trabajo de verificación de racha */
         private const val STREAK_WORK_NAME = "streak_check_work"
+
+        /** Tag para identificar trabajos de racha */
         private const val STREAK_WORK_TAG = "streak_check"
 
-
+        /** Nombre único del trabajo de recordatorio */
         private const val REMINDER_WORK_NAME = "reminder_work"
+
+        /** Tag para identificar trabajos de recordatorio */
         private const val REMINDER_WORK_TAG = "reminder"
     }
 }

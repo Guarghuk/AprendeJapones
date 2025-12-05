@@ -5,14 +5,64 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Repositorio para obtener contenido de lecciones
- * Por ahora con datos hardcoded, luego se puede conectar a API o base de datos local
+ * Repositorio para obtener el contenido de lecciones de japonés.
+ *
+ * Proporciona las preguntas y ejercicios para cada tipo de lección.
+ * Actualmente utiliza datos hardcoded, pero está diseñado para
+ * conectarse fácilmente a una API o base de datos local en el futuro.
+ *
+ * ## Lecciones Disponibles
+ * - **Hiragana:** Lectura de los 46 caracteres básicos hiragana
+ * - **Katakana:** Lectura de los 46 caracteres básicos katakana
+ * - **Kanji:** Significado de kanji básicos (elementos, días)
+ * - **Vocabulario:** Palabras y expresiones comunes
+ * - **Gramática:** Partículas, verbos y estructuras
+ * - **Haz Frases:** Construcción de oraciones
+ * - **Conversación:** Respuestas a situaciones cotidianas
+ * - **Pronunciación:** Vocalización y entonación correcta
+ *
+ * ## Formato de Preguntas
+ * Cada pregunta sigue el formato de [Question]:
+ * - `id`: Identificador único
+ * - `text`: Pregunta al usuario
+ * - `content`: Contenido visual (carácter, kanji, emoji)
+ * - `options`: 4 opciones de respuesta
+ * - `correctAnswer`: La opción correcta
+ *
+ * ## Uso
+ *
+ * ```kotlin
+ * class LessonViewModel @Inject constructor(
+ *     private val lessonContentRepository: LessonContentRepository
+ * ) : ViewModel() {
+ *
+ *     fun loadLesson(lessonName: String) {
+ *         val questions = lessonContentRepository.getQuestionsForLesson(lessonName)
+ *         // Mostrar preguntas al usuario
+ *     }
+ * }
+ * ```
+ *
+ * ## Extensibilidad
+ * Para añadir nuevas lecciones:
+ * 1. Crear un nuevo método `getXXXQuestions()`
+ * 2. Añadir el caso en el `when` de [getQuestionsForLesson]
+ *
+ * @see Question Modelo de pregunta utilizado.
+ * @see LessonRepository Para guardar el progreso de lecciones.
+ *
+ * @author Kotodama Team
+ * @since 1.0.0
  */
 @Singleton
 class LessonContentRepository @Inject constructor() {
 
     /**
-     * Obtiene las preguntas para una lección específica
+     * Obtiene las preguntas para una lección específica.
+     *
+     * @param lessonName Nombre de la lección (ej: "Hiragana", "Kanji").
+     * @return Lista de [Question] para la lección solicitada.
+     *         Si no se reconoce el nombre, retorna preguntas por defecto.
      */
     fun getQuestionsForLesson(lessonName: String): List<Question> {
         return when (lessonName) {
@@ -28,6 +78,13 @@ class LessonContentRepository @Inject constructor() {
         }
     }
 
+    /**
+     * Obtiene las preguntas de la lección de Hiragana.
+     *
+     * Cubre las vocales básicas (あ, い, う, え, お) y la serie K (か, き, く, け, こ).
+     *
+     * @return Lista de 10 preguntas sobre lectura de hiragana.
+     */
     private fun getHiraganaQuestions(): List<Question> {
         return listOf(
             Question(
@@ -103,6 +160,13 @@ class LessonContentRepository @Inject constructor() {
         )
     }
 
+    /**
+     * Obtiene las preguntas de la lección de Katakana.
+     *
+     * Cubre las vocales básicas y palabras extranjeras comunes escritas en katakana.
+     *
+     * @return Lista de 5 preguntas sobre lectura de katakana.
+     */
     private fun getKatakanaQuestions(): List<Question> {
         return listOf(
             Question(
@@ -143,6 +207,13 @@ class LessonContentRepository @Inject constructor() {
         )
     }
 
+    /**
+     * Obtiene las preguntas de la lección de Kanji.
+     *
+     * Cubre kanji básicos relacionados con elementos naturales y días.
+     *
+     * @return Lista de 5 preguntas sobre significado de kanji.
+     */
     private fun getKanjiQuestions(): List<Question> {
         return listOf(
             Question(
@@ -183,6 +254,13 @@ class LessonContentRepository @Inject constructor() {
         )
     }
 
+    /**
+     * Obtiene las preguntas de la lección de Vocabulario.
+     *
+     * Cubre saludos y expresiones básicas en japonés.
+     *
+     * @return Lista de 5 preguntas sobre vocabulario básico.
+     */
     private fun getVocabularyQuestions(): List<Question> {
         return listOf(
             Question(
@@ -223,6 +301,13 @@ class LessonContentRepository @Inject constructor() {
         )
     }
 
+    /**
+     * Obtiene las preguntas de la lección de Gramática.
+     *
+     * Cubre partículas japonesas y conjugaciones verbales básicas.
+     *
+     * @return Lista de 5 preguntas sobre gramática japonesa.
+     */
     private fun getGrammarQuestions(): List<Question> {
         return listOf(
             Question(
@@ -273,6 +358,13 @@ class LessonContentRepository @Inject constructor() {
         )
     }
 
+    /**
+     * Obtiene las preguntas de la lección "Haz Frases".
+     *
+     * Cubre construcción de oraciones básicas en japonés.
+     *
+     * @return Lista de 3 preguntas sobre construcción de frases.
+     */
     private fun getPhrasesQuestions(): List<Question> {
         return listOf(
             Question(
@@ -309,6 +401,13 @@ class LessonContentRepository @Inject constructor() {
         )
     }
 
+    /**
+     * Obtiene las preguntas de la lección de Conversación.
+     *
+     * Cubre respuestas apropiadas a situaciones cotidianas.
+     *
+     * @return Lista de 2 preguntas sobre conversación.
+     */
     private fun getConversationQuestions(): List<Question> {
         return listOf(
             Question(
@@ -338,6 +437,13 @@ class LessonContentRepository @Inject constructor() {
         )
     }
 
+    /**
+     * Obtiene las preguntas de la lección de Pronunciación.
+     *
+     * Cubre reglas de vocalización y entonación en japonés.
+     *
+     * @return Lista de 2 preguntas sobre pronunciación.
+     */
     private fun getPronunciationQuestions(): List<Question> {
         return listOf(
             Question(
@@ -367,6 +473,14 @@ class LessonContentRepository @Inject constructor() {
         )
     }
 
+    /**
+     * Obtiene preguntas por defecto para lecciones no reconocidas.
+     *
+     * Proporciona una experiencia básica si se solicita una lección
+     * que no está implementada.
+     *
+     * @return Lista con 1 pregunta introductoria.
+     */
     private fun getDefaultQuestions(): List<Question> {
         return listOf(
             Question(

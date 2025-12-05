@@ -10,7 +10,35 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 
 /**
- * Worker que envía recordatorios diarios para estudiar
+ * Worker que envía recordatorios diarios para estudiar japonés.
+ *
+ * Este worker se programa para los días y horas configurados por el usuario
+ * en la pantalla de recordatorios. Envía notificaciones para motivar
+ * al usuario a mantener su práctica diaria.
+ *
+ * ## Funcionamiento
+ * 1. Verifica si el usuario ya estudió hoy usando [StreakManager]
+ * 2. Si no ha estudiado, envía un recordatorio
+ * 3. Si tiene racha activa, también envía alerta de racha en peligro
+ *
+ * ## Configuración
+ * - [KEY_MOTIVATIONAL]: Si es `true`, usa mensajes motivacionales variados
+ * - Programado por [WorkManagerScheduler.scheduleReminders]
+ *
+ * ## Notificaciones Enviadas
+ * - **Recordatorio diario:** Mensaje estándar o motivacional
+ * - **Alerta de racha:** Si tiene racha y no ha estudiado
+ *
+ * @param context Contexto de la aplicación (inyectado por WorkManager).
+ * @param workerParams Parámetros del worker incluyendo inputData.
+ * @param notificationHelper Helper para mostrar notificaciones.
+ * @param streakManager Manager para verificar estado de estudio.
+ *
+ * @see WorkManagerScheduler Programa este worker.
+ * @see NotificationHelper Muestra las notificaciones.
+ *
+ * @author Kotodama Team
+ * @since 1.0.0
  */
 @HiltWorker
 class ReminderWorker @AssistedInject constructor(
@@ -20,6 +48,15 @@ class ReminderWorker @AssistedInject constructor(
     private val streakManager: StreakManager
 ) : CoroutineWorker(context, workerParams) {
 
+    /**
+     * Ejecuta la lógica del recordatorio.
+     *
+     * Solo envía notificaciones si el usuario no ha estudiado hoy.
+     * Si tiene racha activa, envía también alerta de racha en peligro.
+     *
+     * @return [Result.success] si se completó correctamente,
+     *         [Result.retry] si ocurrió un error.
+     */
     override suspend fun doWork(): Result {
         return try {
             // Obtener si debe usar mensajes motivacionales
@@ -46,6 +83,12 @@ class ReminderWorker @AssistedInject constructor(
     }
 
     companion object {
+        /**
+         * Clave para el parámetro de mensajes motivacionales en inputData.
+         *
+         * Si es `true`, el recordatorio usará mensajes motivacionales
+         * variados en lugar del mensaje estándar.
+         */
         const val KEY_MOTIVATIONAL = "motivational_messages"
     }
 }
