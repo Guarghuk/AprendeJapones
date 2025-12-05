@@ -46,10 +46,10 @@ Nuestra aplicación está dirigida a estudiantes universitarios, profesionales i
 
 | 🏠 Inicio / Login | 📖 Funcionalidad Principal | 📋 Detalles |
 |:-----------------:|:--------------------------:|:-----------:|
-| ![Pantalla Principal](docs/screenshots/screenshot1.png) | ![Pantalla Lecciones](docs/screenshots/screenshot2.png) | ![Pantalla Quiz](docs/screenshots/screenshot3.png) |
-| *Pantalla de bienvenida* | *Lección de Hiragana* | *Sistema de Quiz* |
-| ![Pantalla Progreso](docs/screenshots/screenshot4.png) | ![Pantalla Kanji](docs/screenshots/screenshot5.png) | ![Pantalla Logros](docs/screenshots/screenshot6.png) |
-| *Dashboard de progreso* | *Aprendizaje de Kanji* | *Sistema de logros* |
+| ![Pantalla Principal](docs/screenshots/screenshot1.jpeg) | ![Pantalla Lecciones](docs/screenshots/screenshot2.jpeg) | ![Pantalla Quiz](docs/screenshots/screenshot3.jpeg) |
+| *Pantalla de bienvenida* | *Lección de Hiragana* | *Sistema de Tienda* |
+| ![Pantalla Progreso](docs/screenshots/screenshot4.jpeg) | ![Pantalla Kanji](docs/screenshots/screenshot5.jpeg) | ![Pantalla Logros](docs/screenshots/screenshot6.jpeg) |
+| *Dashboard de progreso* | *Aprendizaje de Kanji* | *Sistema de Comunidad* |
 
 </div>
 
