@@ -139,399 +139,234 @@ AprendeJapones/
 
 ## 📝 Documentación Técnica
 
-### 🌳 Estructura de Directorios del Código Fuente
+### 🛠️ Guía de Creación de la Aplicación
 
+Esta guía explica paso a paso cómo fue construida la aplicación Kotodama, describiendo cada archivo, su ubicación y propósito. Sigue este orden para recrear la estructura del proyecto.
+
+---
+
+### 📍 Paso 1: Configuración Inicial del Proyecto
+
+**Ubicación:** `app/src/main/java/com/example/aprendejapones/`
+
+#### 1.1 Clase Application
+**Archivo:** `KotodamaApplication.kt`
 ```
-app/src/main/java/com/example/aprendejapones/
-├── KotodamaApplication.kt              # Clase Application principal
-├── MainActivity.kt                      # Activity principal de la app
-│
-├── data/                                # 📦 Capa de Datos
-│   ├── firebase/
-│   │   └── FirebaseManager.kt
-│   ├── local/
-│   │   ├── database/
-│   │   │   ├── AppDatabase.kt
-│   │   │   ├── dao/
-│   │   │   │   ├── HistorialLeccionesDao.kt
-│   │   │   │   ├── LogrosLocalDao.kt
-│   │   │   │   ├── ProgresoCategoriaDao.kt
-│   │   │   │   └── UsuariosLocalDao.kt
-│   │   │   └── entity/
-│   │   │       ├── HistorialLeccionesEntity.kt
-│   │   │       ├── LogrosLocalEntity.kt
-│   │   │       ├── ProgresoCategoriaEntity.kt
-│   │   │       └── UsuariosLocalEntity.kt
-│   │   └── preferences/
-│   │       └── PreferencesManager.kt
-│   ├── mapper/
-│   │   └── UserMapper.kt
-│   └── repository/
-│       ├── AchievementRepositoryImpl.kt
-│       ├── AuthRepositoryImpl.kt
-│       ├── FirestoreCommunityRepositoryImpl.kt
-│       ├── FirestoreUserRepositoryImpl.kt
-│       ├── LessonRepositoryImpl.kt
-│       ├── PostRepositoryImpl.kt
-│       ├── ProgressRepositoryImpl.kt
-│       └── UserRepositoryImpl.kt
-│
-├── di/                                  # 💉 Inyección de Dependencias (Hilt)
-│   ├── AppModule.kt
-│   ├── DatabaseModule.kt
-│   ├── FirebaseModule.kt
-│   └── RepositoryModule.kt
-│
-├── domain/                              # 🧠 Capa de Dominio
-│   ├── manager/
-│   │   └── StreakManager.kt
-│   ├── model/
-│   │   ├── FirebaseModels.kt
-│   │   ├── Response.kt
-│   │   └── User.kt
-│   ├── repository/
-│   │   ├── AchievementRepository.kt
-│   │   ├── AuthRepository.kt
-│   │   ├── CommunityRepository.kt
-│   │   ├── FirestoreUserRepository.kt
-│   │   ├── LessonContentRepository.kt
-│   │   ├── LessonRepository.kt
-│   │   ├── PostRepository.kt
-│   │   ├── ProgressRepository.kt
-│   │   └── UserRepository.kt
-│   └── usecases/
-│       ├── GetPostByUserId.kt
-│       └── GetPostsUseCase.kt
-│
-├── notification/                        # 🔔 Sistema de Notificaciones
-│   └── NotificationHelper.kt
-│
-├── presentation/                        # 🎨 Capa de Presentación (UI)
-│   ├── components/
-│   │   ├── cards/
-│   │   │   ├── AchievementsPreviewCard.kt
-│   │   │   ├── DailyChallengeCard.kt
-│   │   │   ├── FunctionCard.kt
-│   │   │   ├── KitsuneMessageCard.kt
-│   │   │   ├── PostCard.kt
-│   │   │   ├── ProgressCard.kt
-│   │   │   ├── RecentActivityCard.kt
-│   │   │   ├── StatsCard.kt
-│   │   │   └── UserInfoCard.kt
-│   │   └── common/
-│   │       └── StatBadge.kt
-│   ├── navigation/
-│   │   ├── BottomNavigationBar.kt
-│   │   ├── NavGraph.kt
-│   │   └── Screen.kt
-│   ├── screens/
-│   │   ├── achievements/
-│   │   │   ├── AchievementsScreen.kt
-│   │   │   ├── AchievementsState.kt
-│   │   │   └── AchievementsViewModel.kt
-│   │   ├── auth/
-│   │   │   ├── AuthEffect.kt
-│   │   │   ├── AuthEvent.kt
-│   │   │   ├── AuthState.kt
-│   │   │   ├── AuthViewModel.kt
-│   │   │   ├── LoginScreen.kt
-│   │   │   └── RegisterScreen.kt
-│   │   ├── community/
-│   │   │   ├── CommunityScreen.kt
-│   │   │   ├── CommunityState.kt
-│   │   │   └── CommunityViewModel.kt
-│   │   ├── dailygoal/
-│   │   │   ├── DailyGoalEffect.kt
-│   │   │   ├── DailyGoalEvent.kt
-│   │   │   ├── DailyGoalScreen.kt
-│   │   │   ├── DailyGoalState.kt
-│   │   │   └── DailyGoalViewModel.kt
-│   │   ├── home/
-│   │   │   ├── HomeScreen.kt
-│   │   │   ├── HomeState.kt
-│   │   │   └── HomeViewModel.kt
-│   │   ├── lesson/
-│   │   │   ├── LessonScreen.kt
-│   │   │   ├── LessonState.kt
-│   │   │   └── LessonViewModel.kt
-│   │   ├── menu/
-│   │   │   ├── MenuScreen.kt
-│   │   │   ├── MenuState.kt
-│   │   │   └── MenuViewModel.kt
-│   │   ├── newpost/
-│   │   │   ├── NewPostEffect.kt
-│   │   │   ├── NewPostEvent.kt
-│   │   │   ├── NewPostScreen.kt
-│   │   │   ├── NewPostState.kt
-│   │   │   └── NewPostViewModel.kt
-│   │   ├── onboarding/
-│   │   │   ├── OnBoardingScreen.kt
-│   │   │   ├── OnBoardingState.kt
-│   │   │   ├── OnBoardingViewModel.kt
-│   │   │   └── pages/
-│   │   │       ├── FeaturesPage.kt
-│   │   │       ├── ReadyPage.kt
-│   │   │       └── WelcomePage.kt
-│   │   ├── profile/
-│   │   │   ├── EditProfileScreen.kt
-│   │   │   ├── EditProfileState.kt
-│   │   │   ├── EditProfileViewModel.kt
-│   │   │   ├── ProfileScreen.kt
-│   │   │   ├── ProfileState.kt
-│   │   │   ├── ProfileViewModel.kt
-│   │   │   ├── UserProfileScreen.kt
-│   │   │   ├── UserProfileState.kt
-│   │   │   └── UserProfileViewModel.kt
-│   │   ├── reminders/
-│   │   │   ├── RemindersEffect.kt
-│   │   │   ├── RemindersEvent.kt
-│   │   │   ├── RemindersScreen.kt
-│   │   │   ├── RemindersState.kt
-│   │   │   └── RemindersViewModel.kt
-│   │   ├── shop/
-│   │   │   ├── ShopScreen.kt
-│   │   │   ├── ShopState.kt
-│   │   │   └── ShopViewModel.kt
-│   │   ├── splash/
-│   │   │   └── SplashViewModel.kt
-│   │   ├── stats/
-│   │   │   ├── StatsScreen.kt
-│   │   │   ├── StatsState.kt
-│   │   │   └── StatsViewModel.kt
-│   │   └── sync/
-│   │       ├── SyncEffect.kt
-│   │       ├── SyncEvent.kt
-│   │       ├── SyncScreen.kt
-│   │       ├── SyncState.kt
-│   │       └── SyncViewModel.kt
-│   └── theme/
-│       ├── Color.kt
-│       ├── Theme.kt
-│       └── Type.kt
-│
-├── utils/                               # 🔧 Utilidades
-│   ├── MockData.kt
-│   └── TimeUtils.kt
-│
-└── workers/                             # ⏰ Background Workers
-    ├── ReminderWorker.kt
-    ├── StreakWorker.kt
-    └── WorkManagerScheduler.kt
+Propósito: Punto de entrada de la aplicación. Inicializa Hilt para inyección de 
+dependencias y configura WorkManager para tareas en segundo plano (verificación 
+de racha diaria).
+```
+
+#### 1.2 Activity Principal
+**Archivo:** `MainActivity.kt`
+```
+Propósito: Única Activity de la app (Single Activity Pattern). Configura el tema 
+de Compose, solicita permisos de notificaciones y renderiza el NavGraph según 
+el estado de autenticación del usuario.
 ```
 
 ---
 
-### 📚 Diccionario de Clases
+### 📍 Paso 2: Capa de Dominio (Lógica de Negocio)
 
-#### 📦 Paquete: `data.firebase`
+**Ubicación:** `domain/`
 
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `FirebaseManager.kt` | Singleton/Manager | Gestiona las referencias a las colecciones de Firestore y proporciona acceso centralizado a Firebase |
+#### 2.1 Modelos de Datos
+**Carpeta:** `domain/model/`
 
-#### 📦 Paquete: `data.local.database`
+- **`User.kt`** - Define el modelo de usuario con propiedades: id, username, rank, level, XP, streak, drops. Incluye también `DailyChallenge`, `LessonFunction` y `KitsuneMessage`.
 
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `AppDatabase.kt` | Database | Configuración de Room Database con DAOs y entidades |
-| `HistorialLeccionesDao.kt` | DAO Interface | Operaciones CRUD para el historial de lecciones completadas |
-| `LogrosLocalDao.kt` | DAO Interface | Operaciones CRUD para logros almacenados localmente |
-| `ProgresoCategoriaDao.kt` | DAO Interface | Operaciones CRUD para el progreso por categoría de lección |
-| `UsuariosLocalDao.kt` | DAO Interface | Operaciones CRUD para datos del usuario local |
-| `HistorialLeccionesEntity.kt` | Entity | Entidad Room para historial de lecciones |
-| `LogrosLocalEntity.kt` | Entity | Entidad Room para logros del usuario |
-| `ProgresoCategoriaEntity.kt` | Entity | Entidad Room para progreso por categoría |
-| `UsuariosLocalEntity.kt` | Entity | Entidad Room para información del usuario |
+- **`FirebaseModels.kt`** - Modelos para Firestore: `UsuariosFirestore`, `Publicaciones`, `Comentarios`, `Likes`. Contiene también modelos legacy para compatibilidad.
 
-#### 📦 Paquete: `data.local.preferences`
+- **`Response.kt`** - Sealed class que envuelve resultados de operaciones async con estados: `Loading`, `Success`, `Failure`.
 
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `PreferencesManager.kt` | Manager | Gestiona preferencias del usuario con DataStore (onboarding, recordatorios) |
+#### 2.2 Interfaces de Repositorios
+**Carpeta:** `domain/repository/`
 
-#### 📦 Paquete: `data.mapper`
+Define los contratos (interfaces) que la capa de datos debe implementar:
+- `UserRepository.kt` - Gestión del usuario local
+- `AuthRepository.kt` - Autenticación (login, registro, logout)
+- `LessonRepository.kt` - Gestión de lecciones
+- `ProgressRepository.kt` - Seguimiento de progreso
+- `AchievementRepository.kt` - Sistema de logros
+- `CommunityRepository.kt` - Funcionalidades de comunidad
+- `PostRepository.kt` - Publicaciones
+- `FirestoreUserRepository.kt` - Sincronización con la nube
 
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `UserMapper.kt` | Mapper | Convierte entre entidades de Room y modelos de dominio |
+#### 2.3 Casos de Uso
+**Carpeta:** `domain/usecases/`
 
-#### 📦 Paquete: `data.repository`
+- **`GetPostsUseCase.kt`** - Obtiene el feed de publicaciones de la comunidad
+- **`GetPostByUserId.kt`** - Filtra publicaciones por usuario
 
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `AchievementRepositoryImpl.kt` | Repository Impl | Implementación del repositorio de logros |
-| `AuthRepositoryImpl.kt` | Repository Impl | Implementación de autenticación con Firebase Auth |
-| `FirestoreCommunityRepositoryImpl.kt` | Repository Impl | Gestión de publicaciones, likes y comentarios en Firestore |
-| `FirestoreUserRepositoryImpl.kt` | Repository Impl | Sincronización de usuario entre local y Firestore |
-| `LessonRepositoryImpl.kt` | Repository Impl | Gestión de lecciones y contenido educativo |
-| `PostRepositoryImpl.kt` | Repository Impl | Operaciones CRUD para publicaciones de la comunidad |
-| `ProgressRepositoryImpl.kt` | Repository Impl | Seguimiento del progreso del usuario |
-| `UserRepositoryImpl.kt` | Repository Impl | Gestión del usuario local (XP, nivel, racha, drops) |
+#### 2.4 Managers
+**Carpeta:** `domain/manager/`
 
-#### 📦 Paquete: `di` (Dependency Injection)
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `AppModule.kt` | Hilt Module | Proporciona dependencias generales de la aplicación |
-| `DatabaseModule.kt` | Hilt Module | Proporciona instancias de Room Database y DAOs |
-| `FirebaseModule.kt` | Hilt Module | Proporciona instancias de Firebase (Auth, Firestore) |
-| `RepositoryModule.kt` | Hilt Module | Vincula interfaces de repositorios con sus implementaciones |
-
-#### 📦 Paquete: `domain.manager`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `StreakManager.kt` | Manager | Lógica de negocio para gestionar rachas de estudio diarias |
-
-#### 📦 Paquete: `domain.model`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `FirebaseModels.kt` | Data Classes | Modelos para Firestore (Publicaciones, Comentarios, Likes, UsuariosFirestore) |
-| `Response.kt` | Sealed Class | Wrapper para estados de operaciones async (Loading, Success, Failure) |
-| `User.kt` | Data Classes | Modelos de dominio (User, DailyChallenge, LessonFunction, KitsuneMessage) |
-
-#### 📦 Paquete: `domain.repository`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `AchievementRepository.kt` | Interface | Contrato para operaciones de logros |
-| `AuthRepository.kt` | Interface | Contrato para autenticación (login, registro, logout) |
-| `CommunityRepository.kt` | Interface | Contrato para funcionalidades de comunidad |
-| `FirestoreUserRepository.kt` | Interface | Contrato para sincronización de usuario con Firestore |
-| `LessonContentRepository.kt` | Interface | Contrato para contenido de lecciones |
-| `LessonRepository.kt` | Interface | Contrato para gestión de lecciones |
-| `PostRepository.kt` | Interface | Contrato para publicaciones |
-| `ProgressRepository.kt` | Interface | Contrato para seguimiento de progreso |
-| `UserRepository.kt` | Interface | Contrato para gestión del usuario local |
-
-#### 📦 Paquete: `domain.usecases`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `GetPostByUserId.kt` | Use Case | Obtiene publicaciones filtradas por usuario |
-| `GetPostsUseCase.kt` | Use Case | Obtiene el feed de publicaciones de la comunidad |
-
-#### 📦 Paquete: `notification`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `NotificationHelper.kt` | Helper | Crea y muestra notificaciones del sistema (recordatorios, racha) |
-
-#### 📦 Paquete: `presentation.components.cards`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `AchievementsPreviewCard.kt` | Composable | Tarjeta de vista previa de logros |
-| `DailyChallengeCard.kt` | Composable | Tarjeta que muestra el desafío diario actual |
-| `FunctionCard.kt` | Composable | Tarjeta para mostrar categorías de lecciones |
-| `KitsuneMessageCard.kt` | Composable | Tarjeta con mensajes motivacionales del Kitsune |
-| `PostCard.kt` | Composable | Tarjeta para publicaciones de la comunidad |
-| `ProgressCard.kt` | Composable | Tarjeta de progreso del usuario |
-| `RecentActivityCard.kt` | Composable | Tarjeta de actividad reciente |
-| `StatsCard.kt` | Composable | Tarjeta de estadísticas |
-| `UserInfoCard.kt` | Composable | Tarjeta con información del perfil de usuario |
-
-#### 📦 Paquete: `presentation.components.common`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `StatBadge.kt` | Composable | Badge reutilizable para mostrar estadísticas |
-
-#### 📦 Paquete: `presentation.navigation`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `BottomNavigationBar.kt` | Composable | Barra de navegación inferior con 4 destinos principales |
-| `NavGraph.kt` | Navigation Graph | Configuración del grafo de navegación de Jetpack Compose |
-| `Screen.kt` | Sealed Class | Define todas las rutas de navegación de la aplicación |
-
-#### 📦 Paquete: `presentation.screens`
-
-| Pantalla | Archivos | Responsabilidad |
-|:---------|:---------|:----------------|
-| **Achievements** | Screen, State, ViewModel | Visualización y desbloqueo de logros |
-| **Auth** | Screen (Login/Register), State, ViewModel, Event, Effect | Autenticación de usuarios |
-| **Community** | Screen, State, ViewModel | Feed de publicaciones y comunidad |
-| **DailyGoal** | Screen, State, ViewModel, Event, Effect | Configuración de metas diarias |
-| **Home** | Screen, State, ViewModel | Pantalla principal con lecciones y progreso |
-| **Lesson** | Screen, State, ViewModel | Ejercicios y contenido de lecciones |
-| **Menu** | Screen, State, ViewModel | Configuración y opciones de la app |
-| **NewPost** | Screen, State, ViewModel, Event, Effect | Creación de nuevas publicaciones |
-| **Onboarding** | Screen, State, ViewModel, Pages/ | Introducción para nuevos usuarios |
-| **Profile** | Screen, State, ViewModel (x3: Profile, EditProfile, UserProfile) | Perfiles de usuario |
-| **Reminders** | Screen, State, ViewModel, Event, Effect | Configuración de recordatorios |
-| **Shop** | Screen, State, ViewModel | Tienda de items con monedas virtuales |
-| **Splash** | ViewModel | Lógica de inicialización de la app |
-| **Stats** | Screen, State, ViewModel | Estadísticas detalladas de aprendizaje |
-| **Sync** | Screen, State, ViewModel, Event, Effect | Sincronización de datos con la nube |
-
-#### 📦 Paquete: `presentation.theme`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `Color.kt` | Object | Definición de la paleta de colores de la app |
-| `Theme.kt` | Composable | Configuración del tema Material 3 |
-| `Type.kt` | Object | Definición de tipografías |
-
-#### 📦 Paquete: `utils`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `MockData.kt` | Object | Datos de prueba para desarrollo y testing |
-| `TimeUtils.kt` | Object | Funciones de utilidad para formateo de fechas y tiempo |
-
-#### 📦 Paquete: `workers`
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `ReminderWorker.kt` | Worker | Ejecuta recordatorios programados en segundo plano |
-| `StreakWorker.kt` | Worker | Verifica y actualiza la racha de estudio a medianoche |
-| `WorkManagerScheduler.kt` | Scheduler | Programa y gestiona los workers de WorkManager |
-
-#### 📦 Raíz del paquete
-
-| Archivo/Clase | Tipo | Responsabilidad |
-|:--------------|:-----|:----------------|
-| `KotodamaApplication.kt` | Application | Inicializa Hilt y WorkManager, programa verificación de racha |
-| `MainActivity.kt` | Activity | Activity principal, punto de entrada de la UI Compose |
+- **`StreakManager.kt`** - Lógica para calcular y actualizar la racha de estudio diaria
 
 ---
 
-### 🧭 Guía de Navegación del Código
+### 📍 Paso 3: Capa de Datos (Persistencia)
 
-#### ¿Dónde encontrar cada tipo de lógica?
+**Ubicación:** `data/`
 
-| Si buscas... | Busca en... |
-|:-------------|:------------|
-| **Lógica de negocio pura** | `domain/` - Modelos, interfaces de repositorios y casos de uso |
-| **Acceso a datos** | `data/` - Implementaciones de repositorios, Room Database, Firebase |
-| **Interfaz de usuario** | `presentation/screens/` - Pantallas organizadas por feature |
-| **Componentes reutilizables** | `presentation/components/` - Cards, badges y widgets |
-| **Navegación** | `presentation/navigation/` - Rutas y grafo de navegación |
-| **Inyección de dependencias** | `di/` - Módulos de Hilt |
-| **Tareas en segundo plano** | `workers/` - WorkManager workers |
+#### 3.1 Base de Datos Local (Room)
+**Carpeta:** `data/local/database/`
 
-#### Flujo de datos típico (MVI Pattern)
+- **`AppDatabase.kt`** - Configuración de Room Database, define versión y entidades
+
+- **Entidades** (`entity/`):
+  - `UsuariosLocalEntity.kt` - Tabla de usuarios
+  - `ProgresoCategoriaEntity.kt` - Progreso por categoría
+  - `HistorialLeccionesEntity.kt` - Historial de lecciones
+  - `LogrosLocalEntity.kt` - Logros desbloqueados
+
+- **DAOs** (`dao/`): Interfaces con queries SQL para cada entidad
+  - `UsuariosLocalDao.kt`, `ProgresoCategoriaDao.kt`, etc.
+
+#### 3.2 Preferencias
+**Carpeta:** `data/local/preferences/`
+
+- **`PreferencesManager.kt`** - Usa DataStore para guardar preferencias: si completó onboarding, horarios de recordatorios, etc.
+
+#### 3.3 Firebase
+**Carpeta:** `data/firebase/`
+
+- **`FirebaseManager.kt`** - Singleton con referencias a colecciones de Firestore (users, posts, comments, likes)
+
+#### 3.4 Implementaciones de Repositorios
+**Carpeta:** `data/repository/`
+
+Implementan las interfaces definidas en `domain/repository/`:
+- `UserRepositoryImpl.kt` - Gestiona usuario local, XP, nivel, drops
+- `AuthRepositoryImpl.kt` - Conecta con Firebase Auth
+- `LessonRepositoryImpl.kt` - Carga contenido de lecciones
+- `ProgressRepositoryImpl.kt` - Actualiza progreso en Room
+- `FirestoreCommunityRepositoryImpl.kt` - CRUD de publicaciones en Firestore
+
+#### 3.5 Mappers
+**Carpeta:** `data/mapper/`
+
+- **`UserMapper.kt`** - Convierte entre entidades de Room y modelos de dominio
+
+---
+
+### 📍 Paso 4: Inyección de Dependencias (Hilt)
+
+**Ubicación:** `di/`
+
+- **`AppModule.kt`** - Dependencias generales (Context, PreferencesManager)
+- **`DatabaseModule.kt`** - Provee AppDatabase y todos los DAOs
+- **`FirebaseModule.kt`** - Provee FirebaseAuth, FirebaseFirestore
+- **`RepositoryModule.kt`** - Vincula interfaces con implementaciones usando `@Binds`
+
+---
+
+### 📍 Paso 5: Capa de Presentación (UI)
+
+**Ubicación:** `presentation/`
+
+#### 5.1 Tema de la Aplicación
+**Carpeta:** `presentation/theme/`
+
+- **`Color.kt`** - Paleta de colores (PrimaryGreen, SecondaryBlue, etc.)
+- **`Type.kt`** - Tipografías personalizadas
+- **`Theme.kt`** - Configuración de Material 3 Theme
+
+#### 5.2 Navegación
+**Carpeta:** `presentation/navigation/`
+
+- **`Screen.kt`** - Sealed class con todas las rutas: Home, Profile, Community, Lesson, etc.
+- **`NavGraph.kt`** - Configuración del Navigation Compose con todos los destinos
+- **`BottomNavigationBar.kt`** - Barra inferior con 4 tabs principales
+
+#### 5.3 Componentes Reutilizables
+**Carpeta:** `presentation/components/`
+
+- **`cards/`** - Tarjetas: ProgressCard, DailyChallengeCard, PostCard, FunctionCard, etc.
+- **`common/`** - Elementos comunes: StatBadge
+
+#### 5.4 Pantallas (Features)
+**Carpeta:** `presentation/screens/`
+
+Cada feature tiene su propia carpeta con patrón MVI:
+
+**Estructura por pantalla:**
+```
+[feature]/
+├── [Feature]Screen.kt     → UI Composable
+├── [Feature]State.kt      → Estado de la UI (data class)
+├── [Feature]ViewModel.kt  → Lógica de presentación
+├── [Feature]Event.kt      → Eventos del usuario (opcional)
+└── [Feature]Effect.kt     → Efectos one-shot (opcional)
+```
+
+**Pantallas implementadas:**
+- `auth/` - Login y Registro
+- `onboarding/` - Introducción con páginas (Welcome, Features, Ready)
+- `home/` - Dashboard principal con lecciones
+- `lesson/` - Ejercicios y contenido educativo
+- `profile/` - Perfil propio, edición, perfil de otros usuarios
+- `community/` - Feed de publicaciones
+- `newpost/` - Crear publicación
+- `achievements/` - Sistema de logros
+- `stats/` - Estadísticas detalladas
+- `shop/` - Tienda con monedas virtuales
+- `menu/` - Configuración y opciones
+- `dailygoal/` - Configurar meta diaria
+- `reminders/` - Configurar recordatorios
+- `sync/` - Sincronización con la nube
+- `splash/` - Lógica inicial de la app
+
+---
+
+### 📍 Paso 6: Sistema de Notificaciones
+
+**Ubicación:** `notification/`
+
+- **`NotificationHelper.kt`** - Crea y muestra notificaciones para recordatorios de estudio y alertas de racha
+
+---
+
+### 📍 Paso 7: Tareas en Segundo Plano
+
+**Ubicación:** `workers/`
+
+- **`StreakWorker.kt`** - Se ejecuta a medianoche para verificar si el usuario perdió su racha
+- **`ReminderWorker.kt`** - Envía recordatorios de estudio según horarios configurados
+- **`WorkManagerScheduler.kt`** - Programa los workers con WorkManager
+
+---
+
+### 📍 Paso 8: Utilidades
+
+**Ubicación:** `utils/`
+
+- **`TimeUtils.kt`** - Funciones para formatear fechas y calcular tiempo restante
+- **`MockData.kt`** - Datos de prueba para desarrollo
+
+---
+
+### 🔄 Flujo de Datos (MVI Pattern)
 
 ```
-Usuario interactúa → Screen → ViewModel → Repository → Data Source
-                         ↑        ↓
-                    State ← Effect/Event
+┌─────────────┐     ┌──────────────┐     ┌──────────────┐     ┌─────────────┐
+│   Usuario   │ ──► │    Screen    │ ──► │  ViewModel   │ ──► │ Repository  │
+│  (Interacción)    │  (Composable)│     │   (Lógica)   │     │   (Datos)   │
+└─────────────┘     └──────────────┘     └──────────────┘     └─────────────┘
+                           ▲                    │
+                           │                    ▼
+                    ┌──────┴────────────────────────┐
+                    │     State / Effect / Event    │
+                    └───────────────────────────────┘
 ```
 
-1. **Screen** (Composable): Renderiza la UI basada en el State
-2. **ViewModel**: Procesa eventos, actualiza el State, coordina con Repository
-3. **Repository**: Abstrae el acceso a datos (Room + Firestore)
-4. **Data Sources**: Room Database (local) y Firebase Firestore (nube)
-
-#### Convenciones de nomenclatura
-
-- **Screens**: `[Feature]Screen.kt` - Composable principal de la pantalla
-- **States**: `[Feature]State.kt` - Data class con el estado de la UI
-- **ViewModels**: `[Feature]ViewModel.kt` - Lógica de presentación
-- **Events**: `[Feature]Event.kt` - Acciones del usuario (sealed class)
-- **Effects**: `[Feature]Effect.kt` - Efectos secundarios one-shot (navegación, snackbars)
+1. El usuario interactúa con la **Screen**
+2. La Screen envía un **Event** al **ViewModel**
+3. El ViewModel procesa el evento y llama al **Repository**
+4. El Repository obtiene/guarda datos en Room o Firestore
+5. El ViewModel actualiza el **State**
+6. La Screen observa el State y se re-renderiza
 
 ---
 
