@@ -88,14 +88,14 @@ Nuestra aplicación está dirigida a estudiantes universitarios, profesionales i
                       │ ⬆️ Suspend Functions / Flow
                       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    📦 REPOSITORY                            │
-│              (Abstracción de datos)                         │
-│         Única fuente de verdad para el ViewModel            ��
+│                    📦 REPOSITORY                           │
+│              (Abstracción de datos)                        │
+│         Única fuente de verdad para el ViewModel           │
 └──────────┬─────────────────────────────────────────────────┘
            │                                 
            ▼                                 
 ┌─────────────────────────────────────────────────────────────┐
-│                    🗄️ LOCAL (Room Database)                 │
+│                    🗄️ LOCAL (Room Database)                │
 │                    Base de datos SQLite                     │
 └─────────────────────────────────────────────────────────────┘
 ```
