@@ -23,6 +23,12 @@ source venv/bin/activate   # En Windows: venv\Scripts\activate
 python app.py
 ```
 
+Para habilitar el modo debug durante el desarrollo:
+
+```bash
+flask --app app run --debug
+```
+
 El servidor se inicia en `http://127.0.0.1:5000`.
 
 ## Endpoints
